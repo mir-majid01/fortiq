@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fortiq/app/app.dart';
 import 'package:fortiq/app/router.dart';
 import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/theme/app_theme.dart';
@@ -17,6 +18,7 @@ import 'package:fortiq/features/filters/filters_sheet.dart';
 import 'package:fortiq/features/home/home_screen.dart';
 import 'package:fortiq/features/onboarding/onboarding_screen.dart';
 import 'package:fortiq/features/splash/splash_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUpAll(() async {
@@ -41,6 +43,31 @@ void main() {
       }
       await loader.load();
     }
+  });
+
+  testWidgets('FortiqApp owns one restorable state and routes after splash',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const FortiqApp());
+    expect(find.byType(SplashScreen), findsOneWidget);
+    final scoped = StateScope.of(tester.element(find.byType(SplashScreen)));
+
+    await tester.pump(SplashScreen.duration);
+    await tester.pumpAndSettle();
+    expect(find.byType(OnboardingScreen), findsOneWidget);
+    expect(StateScope.of(tester.element(find.byType(OnboardingScreen))),
+        same(scoped));
+
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MainShell), findsOneWidget);
+    expect(StateScope.of(tester.element(find.byType(MainShell))), same(scoped));
+    expect(scoped.onboarded, isTrue);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Splash shows brand, tagline and loading bar', (tester) async {
@@ -165,7 +192,8 @@ void main() {
     expect(state.filters.categories, {'Legend League'});
     expect(state.exploreResults, isNotEmpty);
     expect(
-      state.exploreResults.every((base) => base.categories.contains('Legend League')),
+      state.exploreResults
+          .every((base) => base.categories.contains('Legend League')),
       isTrue,
     );
   });
@@ -267,7 +295,8 @@ void main() {
       expect(navRect.right, lessThanOrEqualTo(320));
       expect(navRect.bottom, lessThanOrEqualTo(568 - 24));
 
-      final label = find.descendant(of: nav, matching: find.text(labels[index]));
+      final label =
+          find.descendant(of: nav, matching: find.text(labels[index]));
       expect(label, findsOneWidget);
       await Scrollable.ensureVisible(tester.element(label));
       await tester.pumpAndSettle();

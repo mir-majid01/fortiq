@@ -12,6 +12,7 @@ dependencies:
   # Native launch branding and Base Detail system integrations.
   flutter_native_splash: ^2.4.8
   share_plus: ^10.0.0
+  shared_preferences: ^2.5.6
   url_launcher: ^6.2.6
 
 dev_dependencies:

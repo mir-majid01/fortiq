@@ -2,22 +2,27 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show TextEditingValue, TextSelection;
 import 'package:flutter/widgets.dart' show FocusManager, TextEditingController;
 
-import '../tabs.dart';
+import '../../core/storage/local_store.dart';
 import '../../data/models/base_layout.dart';
 import '../../data/models/filters.dart';
 import '../../data/repositories/base_repository.dart';
 import '../../data/repositories/queries.dart';
+import '../tabs.dart';
 
 /// Session state for the whole app: loaded data, navigation tab, favourites,
 /// follows, and the Explore search/filter/sort pipeline. Lightweight
 /// `ChangeNotifier` — no external state-management dependency needed.
 class AppState extends ChangeNotifier {
-  AppState({BaseRepository? repository})
-      : repository = repository ?? repositoryProvider();
+  AppState({BaseRepository? repository, LocalStore? store})
+      : repository = repository ?? repositoryProvider(),
+        _store = store ?? const LocalStore();
 
   final BaseRepository repository;
+  final LocalStore _store;
   bool _disposed = false;
   bool _loading = false;
+  bool _loadingPersistedState = false;
+  bool _persistedStateLoaded = false;
 
   @override
   void dispose() {
@@ -87,7 +92,34 @@ class AppState extends ChangeNotifier {
   }
 
   // ---- Flow ---------------------------------------------------------------
-  bool onboarded = false;
+  bool _onboarded = false;
+  bool get onboarded => _onboarded;
+  bool get isRestoringPersistedState => _loadingPersistedState;
+  bool get isPersistedStateLoaded => _persistedStateLoaded;
+
+  /// Loads the persisted flow state once. A disposed state ignores late reads.
+  Future<void> loadPersistedState() async {
+    if (_disposed || _persistedStateLoaded || _loadingPersistedState) return;
+    _loadingPersistedState = true;
+    try {
+      final complete = await _store.loadOnboardingComplete();
+      if (_disposed) return;
+      _onboarded = complete;
+      _persistedStateLoaded = true;
+    } finally {
+      if (!_disposed) _loadingPersistedState = false;
+    }
+  }
+
+  /// Called only by the onboarding Finish/Skip callback. The session changes
+  /// only after LocalStore has accepted the write.
+  Future<void> completeOnboarding() async {
+    if (_disposed || _onboarded) return;
+    await _store.completeOnboarding();
+    if (_disposed) return;
+    _onboarded = true;
+    _persistedStateLoaded = true;
+  }
 
   int _tabIndex = 0;
   int get tabIndex => _tabIndex;
