@@ -47,4 +47,6 @@ The rights-uncleared catalogue asset is omitted from the public source snapshot.
 
 Public APKs will be attached to GitHub Releases after the rights review and final verification. The in-app updater will read the latest public release, show version/patch-note/file-size details, download with progress, verify its checksum, and hand the APK to Android's package installer.
 
+Device testers should follow [the device test checklist](docs/device-test-checklist.md).
+
 Repository: <https://github.com/mir-majid01/fortiq>
