@@ -4,9 +4,7 @@ import '../../app/theme/app_typography.dart';
 import '../../core/icons/fortiq_emblem.dart';
 import '../../core/widgets/tab_page.dart';
 
-/// Honest "coming soon" screen for the Collections / Community / Profile
-/// nav destinations. The approved design only specifies Home and Explore —
-/// these tabs keep the navigation functional without inventing screens.
+/// Honest empty state for tabs without saved content yet.
 class PlaceholderTab extends StatelessWidget {
   const PlaceholderTab({
     super.key,

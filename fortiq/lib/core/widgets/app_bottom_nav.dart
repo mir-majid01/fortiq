@@ -8,7 +8,7 @@ import '../icons/fortiq_icons.dart';
 
 /// Floating pill bottom navigation from the Home/Explore references:
 /// left/right 16, height 68, radius 20, rgba(23,28,35,.96) over a white .07
-/// border; 5 items (22px icon, 11px label, 4px active dot).
+/// border; 3 items (22px icon, 11px label, 4px active dot).
 ///
 /// It sits 28px above the bottom on a device without a system navigation
 /// inset, and flush above the inset (home indicator / gesture bar) when there
@@ -46,8 +46,6 @@ class AppBottomNav extends StatelessWidget {
     ('Home', FortiqIcons.navHome),
     ('Explore', FortiqIcons.navExplore),
     ('Collections', FortiqIcons.navCollections),
-    ('Community', FortiqIcons.navCommunity),
-    ('Profile', FortiqIcons.navProfile),
   ];
 
   @override

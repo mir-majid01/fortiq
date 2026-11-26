@@ -70,6 +70,194 @@ void main() {
     expect(prefs.getBool(_onboardingKey), isNull);
   });
 
+  test('favourites restore once with Set uniqueness and keep stale IDs',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      _favouritesKey: ['test-base', 'retired-base', 'test-base'],
+    });
+    final store = _ControlledStore();
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+
+    await state.loadPersistedState();
+    await state.loadPersistedState();
+
+    expect(store.favouriteLoadCalls, 1);
+    expect(state.isFavorite('test-base'), isTrue);
+    expect(state.isFavorite('retired-base'), isTrue);
+
+    await Future<void>.sync(() => state.toggleFavorite('test-base'));
+    expect(state.isFavorite('test-base'), isFalse);
+    expect(state.isFavorite('retired-base'), isTrue);
+    expect(await const LocalStore().loadFavouriteIds(), ['retired-base']);
+  });
+
+  test('favourite toggles write unique snapshots through LocalStore', () async {
+    final store = _ControlledStore();
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+    await state.loadPersistedState();
+
+    await Future<void>.sync(() => state.toggleFavorite('test-base'));
+    expect(state.isFavorite('test-base'), isTrue);
+    expect(store.lastSavedFavouriteIds, ['test-base']);
+    expect(await const LocalStore().loadFavouriteIds(), ['test-base']);
+
+    await Future<void>.sync(() => state.toggleFavorite('test-base'));
+    expect(state.isFavorite('test-base'), isFalse);
+    expect(store.lastSavedFavouriteIds, isEmpty);
+    expect(await const LocalStore().loadFavouriteIds(), isEmpty);
+  });
+
+  test('a blocked favourite write does not commit session state early',
+      () async {
+    final store = _ControlledStore(blockWrites: true);
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+    await state.loadPersistedState();
+
+    var returned = false;
+    final toggle = Future<void>.sync(() => state.toggleFavorite('test-base'))
+        .then((_) => returned = true);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(store.favouriteSaveCalls, 1);
+    expect(returned, isFalse);
+    expect(state.isFavorite('test-base'), isFalse);
+
+    store.releaseWrites();
+    await toggle;
+    expect(returned, isTrue);
+    expect(state.isFavorite('test-base'), isTrue);
+  });
+
+  test('a failed favourite write leaves AppState and storage unchanged',
+      () async {
+    final store = _ControlledStore(failWrites: true);
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+    await state.loadPersistedState();
+
+    await expectLater(
+      Future<void>.sync(() => state.toggleFavorite('test-base')),
+      throwsStateError,
+    );
+
+    expect(state.isFavorite('test-base'), isFalse);
+    expect(await const LocalStore().loadFavouriteIds(), isEmpty);
+  });
+
+  test('a failed unfavourite leaves the saved ID and storage unchanged',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      _favouritesKey: ['saved-base'],
+    });
+    final store = _ControlledStore(failWrites: true);
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+    await state.loadPersistedState();
+
+    await expectLater(
+      Future<void>.sync(() => state.toggleFavorite('saved-base')),
+      throwsStateError,
+    );
+
+    expect(state.isFavorite('saved-base'), isTrue);
+    expect(await const LocalStore().loadFavouriteIds(), ['saved-base']);
+  });
+
+  test('a favourite edit waits for the in-flight restoration', () async {
+    SharedPreferences.setMockInitialValues({
+      _favouritesKey: ['saved-base'],
+    });
+    final store = _ControlledStore(blockReads: true);
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+
+    final restoration = state.loadPersistedState();
+    final toggle = Future<void>.sync(() => state.toggleFavorite('test-base'));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(store.favouriteSaveCalls, 0);
+    expect(state.isFavorite('test-base'), isFalse);
+
+    store.releaseReads();
+    await restoration;
+    await toggle;
+
+    expect(store.favouriteLoadCalls, 1);
+    expect(state.isFavorite('saved-base'), isTrue);
+    expect(state.isFavorite('test-base'), isTrue);
+    expect(
+      await const LocalStore().loadFavouriteIds(),
+      ['saved-base', 'test-base'],
+    );
+  });
+
+  test('concurrent favourite writes are serialized without lost IDs', () async {
+    final store = _ControlledStore(blockWrites: true);
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+      store: store,
+    );
+    addTearDown(state.dispose);
+    await state.loadPersistedState();
+
+    final first = Future<void>.sync(() => state.toggleFavorite('test-base'));
+    final second = Future<void>.sync(() => state.toggleFavorite('second-base'));
+    await Future<void>.delayed(Duration.zero);
+    expect(store.favouriteSaveCalls, 1);
+
+    store.releaseWrites();
+    await Future.wait([first, second]);
+
+    expect(store.favouriteSaveCalls, 2);
+    expect(state.isFavorite('test-base'), isTrue);
+    expect(state.isFavorite('second-base'), isTrue);
+    expect(
+      await const LocalStore().loadFavouriteIds(),
+      ['test-base', 'second-base'],
+    );
+  });
+
+  test('completing onboarding does not skip favourite restoration', () async {
+    SharedPreferences.setMockInitialValues({
+      _favouritesKey: ['saved-base'],
+    });
+    final state = AppState(
+      repository: _TestRepository(() async => const [_base]),
+    );
+    addTearDown(state.dispose);
+
+    await state.completeOnboarding();
+    await Future<void>.sync(() => state.toggleFavorite('test-base'));
+
+    expect(state.isFavorite('saved-base'), isTrue);
+    expect(state.isFavorite('test-base'), isTrue);
+    expect(
+      await const LocalStore().loadFavouriteIds(),
+      ['saved-base', 'test-base'],
+    );
+  });
+
   test('completing onboarding is persisted before completion returns',
       () async {
     final store = _ControlledStore(blockWrites: true);
@@ -374,6 +562,9 @@ class _ControlledStore extends LocalStore {
   final _writeGate = Completer<void>();
   int loadCalls = 0;
   int completeCalls = 0;
+  int favouriteLoadCalls = 0;
+  int favouriteSaveCalls = 0;
+  List<String>? lastSavedFavouriteIds;
 
   void releaseReads() {
     if (!_readGate.isCompleted) _readGate.complete();
@@ -400,9 +591,20 @@ class _ControlledStore extends LocalStore {
   }
 
   @override
+  Future<List<String>> loadFavouriteIds() async {
+    favouriteLoadCalls++;
+    if (blockReads) await _readGate.future;
+    if (failReads) throw StateError('preference read failed');
+    return super.loadFavouriteIds();
+  }
+
+  @override
   Future<void> saveFavouriteIds(List<String> ids) async {
+    favouriteSaveCalls++;
+    if (blockWrites) await _writeGate.future;
     if (failWrites) throw StateError('preference write failed');
     await super.saveFavouriteIds(ids);
+    lastSavedFavouriteIds = List<String>.unmodifiable(ids);
   }
 }
 

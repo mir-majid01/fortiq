@@ -34,7 +34,6 @@ class BaseDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = StateScope.of(context);
     final favorited = state.isFavorite(base.id);
-    final following = state.isFollowing(base.creator.name);
     final stats = <Widget>[
       if (base.rating != null)
         Row(
@@ -122,7 +121,7 @@ class BaseDetailScreen extends StatelessWidget {
                         const SizedBox(height: 12),
                         Text(base.name, style: AppTypography.detailTitle),
                         const SizedBox(height: 12),
-                        // Creator row + follow.
+                        // Creator attribution from the catalogue source.
                         Row(
                           children: [
                             CreatorAvatar(initial: base.creator.initial),
@@ -146,36 +145,6 @@ class BaseDetailScreen extends StatelessWidget {
                                         color: AppColors.success),
                                   ],
                                 ],
-                              ),
-                            ),
-                            Semantics(
-                              key: const Key('detail-follow'),
-                              container: true,
-                              excludeSemantics: true,
-                              button: true,
-                              selected: following,
-                              label: following
-                                  ? 'Following ${base.creator.name}'
-                                  : 'Follow ${base.creator.name}',
-                              child: SizedBox(
-                                height: 44,
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      state.toggleFollow(base.creator.name),
-                                  behavior: HitTestBehavior.opaque,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 4, horizontal: 2),
-                                    child: Text(
-                                      following ? 'Following' : 'Follow',
-                                      style: AppTypography.followLabel.copyWith(
-                                        color: following
-                                            ? AppColors.textSecondary
-                                            : AppColors.gold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
                               ),
                             ),
                           ],
@@ -244,7 +213,8 @@ class BaseDetailScreen extends StatelessWidget {
                         favorited: favorited,
                         size: 40,
                         borderRadius: 12,
-                        onTap: () => state.toggleFavorite(base.id),
+                        onTap: () =>
+                            StateScope.toggleFavorite(context, base.id),
                       ),
                     ],
                   ),

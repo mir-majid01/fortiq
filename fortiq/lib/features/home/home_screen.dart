@@ -2,7 +2,6 @@ import 'dart:ui' show SemanticsRole;
 
 import 'package:flutter/material.dart';
 
-import '../../app/tabs.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
 import '../../core/icons/fortiq_emblem.dart';
@@ -10,7 +9,6 @@ import '../../core/icons/fortiq_icons.dart';
 import '../../core/widgets/chips.dart';
 import '../../core/widgets/tab_page.dart';
 import '../../core/widgets/game_actions.dart';
-import '../../core/widgets/creator_avatar.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/state_scope.dart';
 import '../../data/models/base_layout.dart';
@@ -87,30 +85,6 @@ class _HomeHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Semantics(
-            key: const Key('home-profile'),
-            container: true,
-            excludeSemantics: true,
-            button: true,
-            label: 'Open profile',
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: Center(
-                child: Material(
-                  color: Colors.transparent,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: () =>
-                        StateScope.of(context).tabIndex = AppTab.profile,
-                    child: CreatorAvatar(initial: 'C', size: 40, fontSize: 14),
                   ),
                 ),
               ),

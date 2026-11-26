@@ -9,8 +9,8 @@ import '../../data/repositories/base_repository.dart';
 import '../../data/repositories/queries.dart';
 import '../tabs.dart';
 
-/// Session state for the whole app: loaded data, navigation tab, favourites,
-/// follows, and the Explore search/filter/sort pipeline. Lightweight
+/// Session state for the whole app: loaded data, navigation tab, persisted
+/// favourites, and the Explore search/filter/sort pipeline. Lightweight
 /// `ChangeNotifier` — no external state-management dependency needed.
 class AppState extends ChangeNotifier {
   AppState({BaseRepository? repository, LocalStore? store})
@@ -23,6 +23,8 @@ class AppState extends ChangeNotifier {
   bool _loading = false;
   bool _loadingPersistedState = false;
   bool _persistedStateLoaded = false;
+  Future<void>? _persistedStateRestoration;
+  Future<void> _favouriteWriteQueue = Future<void>.value();
 
   @override
   void dispose() {
@@ -40,7 +42,6 @@ class AppState extends ChangeNotifier {
   List<BaseLayout>? _builderRecentCache;
   List<BaseLayout>? _builderTrendingCache;
   List<BaseLayout>? _builderRecentSelectionCache;
-  List<Creator>? _creatorsCache;
 
   List<BaseLayout> get bases => _bases;
   bool get isLoaded => _loaded;
@@ -62,7 +63,6 @@ class AppState extends ChangeNotifier {
     _builderRecentCache = null;
     _builderTrendingCache = null;
     _builderRecentSelectionCache = null;
-    _creatorsCache = null;
   }
 
   Future<void> load() async {
@@ -97,35 +97,69 @@ class AppState extends ChangeNotifier {
   bool get isRestoringPersistedState => _loadingPersistedState;
   bool get isPersistedStateLoaded => _persistedStateLoaded;
 
-  /// Loads the persisted flow state once. A disposed state ignores late reads.
-  Future<void> loadPersistedState() async {
-    if (_disposed || _persistedStateLoaded || _loadingPersistedState) return;
+  /// Loads onboarding and favourite IDs once. Concurrent callers share the
+  /// same restoration so a favourite edit cannot race ahead of saved IDs.
+  Future<void> loadPersistedState() {
+    if (_disposed || _persistedStateLoaded) return Future<void>.value();
+    final pending = _persistedStateRestoration;
+    if (pending != null) return pending;
+
+    late final Future<void> restoration;
+    restoration = _restorePersistedState().whenComplete(() {
+      if (identical(_persistedStateRestoration, restoration)) {
+        _persistedStateRestoration = null;
+      }
+    });
+    _persistedStateRestoration = restoration;
+    return restoration;
+  }
+
+  Future<void> _restorePersistedState() async {
     _loadingPersistedState = true;
     try {
       final complete = await _store.loadOnboardingComplete();
+      final favouriteIds = await _store.loadFavouriteIds();
       if (_disposed) return;
       _onboarded = complete;
+      _favoriteIds
+        ..clear()
+        ..addAll(favouriteIds);
       _persistedStateLoaded = true;
+      notifyListeners();
     } finally {
       if (!_disposed) _loadingPersistedState = false;
     }
   }
 
   /// Called only by the onboarding Finish/Skip callback. The session changes
-  /// only after LocalStore has accepted the write.
+  /// only after LocalStore has accepted the write. A failed preference read
+  /// does not prevent onboarding completion, but favourite edits still retry
+  /// restoration rather than overwriting IDs that could not be read.
   Future<void> completeOnboarding() async {
+    if (_disposed || _onboarded) return;
+    try {
+      await loadPersistedState();
+    } catch (_) {
+      // Onboarding can still be completed; the root already handles read
+      // failures and subsequent favourite edits will retry restoration.
+    }
     if (_disposed || _onboarded) return;
     await _store.completeOnboarding();
     if (_disposed) return;
     _onboarded = true;
-    _persistedStateLoaded = true;
+    notifyListeners();
   }
 
   int _tabIndex = 0;
   int get tabIndex => _tabIndex;
   set tabIndex(int i) {
-    if (_tabIndex == i) return;
-    _tabIndex = i;
+    final clamped = i < AppTab.home
+        ? AppTab.home
+        : i > AppTab.collections
+            ? AppTab.collections
+            : i;
+    if (_tabIndex == clamped) return;
+    _tabIndex = clamped;
     notifyListeners();
   }
 
@@ -332,45 +366,41 @@ class AppState extends ChangeNotifier {
     ];
   }
 
-  // ---- Favourites & follows ------------------------------------------------
+  // ---- Favourites ----------------------------------------------------------
   final Set<String> _favoriteIds = {};
-  final Set<String> _followedCreators = {};
+
+  /// Saved IDs in insertion order, including IDs absent from the catalogue.
+  Set<String> get favoriteIds => Set<String>.unmodifiable(_favoriteIds);
 
   bool isFavorite(String id) => _favoriteIds.contains(id);
-  bool isFollowing(String creator) => _followedCreators.contains(creator);
 
-  void toggleFavorite(String id) {
-    if (!_favoriteIds.remove(id)) _favoriteIds.add(id);
-    notifyListeners();
+  /// Persists a toggle before committing it to session state. Writes are
+  /// serialized so concurrent edits cannot overwrite each other's snapshots.
+  Future<void> toggleFavorite(String id) {
+    final operation = _favouriteWriteQueue.then((_) => _persistFavorite(id));
+    _favouriteWriteQueue = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace __) {},
+    );
+    return operation;
   }
 
-  void toggleFollow(String creator) {
-    if (!_followedCreators.remove(creator)) _followedCreators.add(creator);
+  Future<void> _persistFavorite(String id) async {
+    if (_disposed) return;
+    await loadPersistedState();
+    if (_disposed) return;
+
+    final next = {..._favoriteIds};
+    if (!next.remove(id)) next.add(id);
+    await _store.saveFavouriteIds(next.toList(growable: false));
+    if (_disposed) return;
+
+    _favoriteIds
+      ..clear()
+      ..addAll(next);
     notifyListeners();
   }
 
   List<BaseLayout> get favoriteBases =>
       _bases.where((b) => _favoriteIds.contains(b.id)).toList();
-
-  /// Unique creators, verified first then by layout count.
-  List<Creator> get creators {
-    final cached = _creatorsCache;
-    if (cached != null) return cached;
-    final counts = <String, int>{};
-    final verified = <String, bool>{};
-    for (final b in _bases) {
-      counts.update(b.creator.name, (c) => c + 1, ifAbsent: () => 1);
-      verified[b.creator.name] =
-          b.creator.verified || (verified[b.creator.name] ?? false);
-    }
-    final names = counts.keys.toList()
-      ..sort((a, b) {
-        final va = ((verified[a] ?? false) ? 0 : 1)
-            .compareTo((verified[b] ?? false) ? 0 : 1);
-        return va != 0 ? va : counts[b]!.compareTo(counts[a]!);
-      });
-    return _creatorsCache = List.unmodifiable([
-      for (final n in names) Creator(name: n, verified: verified[n] ?? false),
-    ]);
-  }
 }

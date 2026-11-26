@@ -48,9 +48,11 @@ class ExploreBaseCard extends StatelessWidget {
                       right: 8,
                       top: 8,
                       child: HeartButton(
+                        key: Key('explore-favorite-${base.id}'),
                         favorited: favorited,
                         size: 30,
-                        onTap: () => state.toggleFavorite(base.id),
+                        onTap: () =>
+                            StateScope.toggleFavorite(context, base.id),
                       ),
                     ),
                   ],
@@ -85,8 +87,8 @@ class ExploreBaseCard extends StatelessWidget {
               if (base.rating != null)
                 Row(
                   children: [
-                    FortiqIcon(FortiqIcons.starFilled, size: 11, filled: true,
-                        color: AppColors.gold),
+                    FortiqIcon(FortiqIcons.starFilled,
+                        size: 11, filled: true, color: AppColors.gold),
                     const SizedBox(width: 3),
                     Text(
                       base.rating!.toStringAsFixed(1),

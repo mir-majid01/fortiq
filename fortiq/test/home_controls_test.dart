@@ -36,7 +36,7 @@ void main() {
     }
   });
 
-  testWidgets('Home header controls have names and working destinations',
+  testWidgets('Home header keeps notifications and has no profile affordance',
       (tester) async {
     final semantics = tester.ensureSemantics();
     tester.view.devicePixelRatio = 1;
@@ -68,13 +68,9 @@ void main() {
     Navigator.of(tester.element(find.text("You're all caught up"))).pop();
     await tester.pumpAndSettle();
 
-    final profile = find.byKey(const Key('home-profile'));
-    expect(tester.getSemantics(profile).label, 'Open profile');
-    expect(tester.getSize(profile).width, greaterThanOrEqualTo(44));
-    expect(tester.getSize(profile).height, greaterThanOrEqualTo(44));
-    await tester.tap(profile);
-    await tester.pumpAndSettle();
-    expect(state.tabIndex, 4);
+    expect(find.byKey(const Key('home-profile')), findsNothing);
+    expect(find.semantics.byLabel('Open profile'), findsNothing);
+    expect(state.tabIndex, AppTab.home);
     semantics.dispose();
   });
 
@@ -147,7 +143,8 @@ void main() {
       tester.getSemantics(builder).hasFlag(SemanticsFlag.isSelected),
       isTrue,
     );
-    expect(tester.getSemantics(home).hasFlag(SemanticsFlag.isSelected), isFalse);
+    expect(
+        tester.getSemantics(home).hasFlag(SemanticsFlag.isSelected), isFalse);
     semantics.dispose();
   });
 
@@ -238,7 +235,8 @@ void main() {
     final visual = find.descendant(
       of: action,
       matching: find.byWidgetPredicate(
-        (widget) => widget is SizedBox && widget.width == 40 && widget.height == 40,
+        (widget) =>
+            widget is SizedBox && widget.width == 40 && widget.height == 40,
       ),
     );
     expect(tester.getSize(visual), const Size(40, 40));

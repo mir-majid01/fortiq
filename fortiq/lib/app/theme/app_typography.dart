@@ -288,14 +288,6 @@ abstract final class AppTypography {
     color: AppColors.textCardSubtle,
   );
 
-  static const TextStyle followLabel = TextStyle(
-    fontFamily: body,
-    fontSize: 13,
-    height: 1.0,
-    fontWeight: FontWeight.w600,
-    color: AppColors.gold,
-  );
-
   static const TextStyle statStrong = TextStyle(
     fontFamily: body,
     fontSize: 13,

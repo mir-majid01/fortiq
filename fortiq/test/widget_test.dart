@@ -275,7 +275,7 @@ void main() {
       bottom: 24,
     );
 
-    const labels = ['Home', 'Explore', 'Collections', 'Community', 'Profile'];
+    const labels = ['Home', 'Explore', 'Collections'];
     for (var index = 0; index < labels.length; index++) {
       state.tabIndex = index;
       await tester.pumpAndSettle();
@@ -319,7 +319,7 @@ void main() {
       bottom: 20,
     );
 
-    const labels = ['Home', 'Explore', 'Collections', 'Community', 'Profile'];
+    const labels = ['Home', 'Explore', 'Collections'];
     for (var index = 0; index < labels.length; index++) {
       state.tabIndex = index;
       await tester.pumpAndSettle();

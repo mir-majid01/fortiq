@@ -5,6 +5,7 @@ import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/theme/app_theme.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/filters.dart';
+import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/base_detail/base_detail_screen.dart';
 import 'package:fortiq/features/base_preview/base_preview.dart';
 import 'package:fortiq/features/explore/explore_screen.dart';
@@ -44,7 +45,8 @@ void main() {
       await loader.load();
     }
 
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
+    addTearDown(state.dispose);
     await state.load();
 
     Future<void> snap(String name, Size size, Widget child) async {

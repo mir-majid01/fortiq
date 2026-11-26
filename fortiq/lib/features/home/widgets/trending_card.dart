@@ -56,7 +56,8 @@ class TrendingCard extends StatelessWidget {
                       child: HeartButton(
                         favorited: favorited,
                         size: 32,
-                        onTap: () => state.toggleFavorite(base.id),
+                        onTap: () =>
+                            StateScope.toggleFavorite(context, base.id),
                       ),
                     ),
                     Positioned(

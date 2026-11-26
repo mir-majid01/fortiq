@@ -35,7 +35,7 @@ void main() {
     }
   });
 
-  testWidgets('detail icon actions have names and usable touch targets',
+  testWidgets('detail actions are accessible without a Follow control',
       (tester) async {
     final semantics = tester.ensureSemantics();
     tester.view.devicePixelRatio = 1;
@@ -67,22 +67,10 @@ void main() {
     );
     expect(tester.getSemantics(copy).label, 'Copy base link');
 
-    final follow = find.byKey(const Key('detail-follow'));
-    expect(tester.getSize(follow).height, greaterThanOrEqualTo(44));
-    expect(tester.getSemantics(follow).label, 'Follow ${base.creator.name}');
-    expect(
-        tester.getSemantics(follow).hasFlag(SemanticsFlag.isSelected), isFalse);
-
-    await tester.tap(follow);
-    await tester.pumpAndSettle();
-
-    expect(state.isFollowing(base.creator.name), isTrue);
-    expect(
-      tester.getSemantics(follow).label,
-      'Following ${base.creator.name}',
-    );
-    expect(
-        tester.getSemantics(follow).hasFlag(SemanticsFlag.isSelected), isTrue);
+    expect(find.byKey(const Key('detail-follow')), findsNothing);
+    expect(find.text('Follow'), findsNothing);
+    expect(find.text('Following'), findsNothing);
+    expect(find.text(base.creator.name), findsOneWidget);
     semantics.dispose();
   });
 

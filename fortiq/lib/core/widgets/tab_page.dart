@@ -5,7 +5,7 @@ import '../../app/theme/app_typography.dart';
 import 'app_bottom_nav.dart';
 import 'state_scope.dart';
 
-/// Scaffold shared by the five bottom-navigation tabs: the tab's [child]
+/// Scaffold shared by the three bottom-navigation tabs: the tab's [child]
 /// under the status bar, with the floating [AppBottomNav] pinned above the
 /// system navigation area.
 class TabPage extends StatelessWidget {

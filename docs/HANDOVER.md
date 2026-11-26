@@ -32,6 +32,25 @@ catalogue integration, previews/deep links, taxonomy/Collections, the in-app
 updater, and final release verification. Public APKs must be distributed only
 through GitHub Releases after the rights review passes.
 
+Private remote-testing releases: <https://github.com/mir-majid01/fortiq-test-builds>.
+These are personal debug builds and are not public rights-cleared releases.
+
+### Maintenance update — 2026-11-26
+
+- Native splash/logo/launcher work is complete and reviewed: 125 tests passed
+  at that checkpoint, analyzer had 0 errors/0 warnings, and the Android 12 crest
+  scale matches Flutter. Physical cold-start visuals remain unverified.
+- SharedPreferences onboarding persistence is complete and reviewed: 142 tests
+  passed, analyzer had 0 errors/0 warnings, and completion is read on cold start.
+  The user confirmed on the physical device that onboarding no longer reappears
+  after relaunch.
+- Profile/fake Community removal and persistent favourites are in progress.
+- The updater design is approved and published in `docs/updater-design.md` on
+  the public repository; implementation is queued.
+- Catalogue rights remain unresolved: zero upstream sources are cleared for
+  third-party content/preview redistribution, so the full JSON stays out of the
+  public repository and public APK releases.
+
 ---
 
 ## 2. Environment (Windows, Git Bash)

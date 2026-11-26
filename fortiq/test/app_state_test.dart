@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiq/app/state/app_state.dart';
+import 'package:fortiq/app/tabs.dart';
 import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/repositories/base_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _base = BaseLayout(
   id: 'test-base',
@@ -19,6 +21,27 @@ const _base = BaseLayout(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  test('tab selection clamps stale indices to the three production tabs',
+      () async {
+    final state = AppState();
+    addTearDown(state.dispose);
+
+    state.tabIndex = -1;
+    expect(state.tabIndex, AppTab.home);
+    state.tabIndex = 1;
+    expect(state.tabIndex, AppTab.explore);
+    state.tabIndex = 3;
+    expect(state.tabIndex, AppTab.collections);
+    state.tabIndex = 99;
+    expect(state.tabIndex, AppTab.collections);
+    state.tabIndex = AppTab.collections;
+    expect(state.tabIndex, AppTab.collections);
+  });
 
   test('a load completing after disposal does not notify listeners', () async {
     final pending = Completer<List<BaseLayout>>();
@@ -137,31 +160,7 @@ void main() {
     );
   });
 
-  test('creators are unique, verified first, then ordered by layout count',
-      () async {
-    final state = await _loadedState([
-      _builderBase('verified-1', creator: 'Verified'),
-      _builderBase('verified-2', creator: 'Verified', verified: true),
-      _builderBase('popular-1', creator: 'Popular'),
-      _builderBase('popular-2', creator: 'Popular'),
-      _builderBase('popular-3', creator: 'Popular'),
-      _builderBase('runner-1', creator: 'Runner'),
-      _builderBase('runner-2', creator: 'Runner'),
-      _builderBase('solo', creator: 'Solo'),
-    ]);
-
-    expect(
-      state.creators.map((creator) => creator.name),
-      ['Verified', 'Popular', 'Runner', 'Solo'],
-    );
-    expect(
-      state.creators.map((creator) => creator.verified),
-      [true, false, false, false],
-    );
-  });
-
-  test('Builder slices and creators reuse their cached list instances',
-      () async {
+  test('Builder slices reuse their cached list instances', () async {
     final state = await _loadedState([
       _builderBase(
         'first',
@@ -178,11 +177,9 @@ void main() {
 
     final trending = state.trending;
     final recent = state.recent;
-    final creators = state.creators;
 
     expect(state.trending, same(trending));
     expect(state.recent, same(recent));
-    expect(state.creators, same(creators));
   });
 
   test(
@@ -204,27 +201,23 @@ void main() {
 
     final trending = state.trending;
     final recent = state.recent;
-    final creators = state.creators;
 
     state.setSearch('no matching layout');
     expect(state.trending, same(trending));
     expect(state.recent, same(recent));
-    expect(state.creators, same(creators));
 
     state.filters.village = Village.home;
     state.notifyFilterChanged();
     expect(state.trending, same(trending));
     expect(state.recent, same(recent));
-    expect(state.creators, same(creators));
 
-    state.toggleFavorite('first');
+    await Future<void>.sync(() => state.toggleFavorite('first'));
     expect(state.isFavorite('first'), isTrue);
     expect(state.trending, same(trending));
     expect(state.recent, same(recent));
-    expect(state.creators, same(creators));
   });
 
-  test('cached Builder slices and creators cannot be mutated', () async {
+  test('cached Builder slices cannot be mutated', () async {
     final state = await _loadedState([
       _builderBase(
         'first',
@@ -241,14 +234,9 @@ void main() {
 
     final trending = state.trending;
     final recent = state.recent;
-    final creators = state.creators;
 
     expect(() => trending.add(_base), throwsUnsupportedError);
     expect(() => recent.clear(), throwsUnsupportedError);
-    expect(
-      () => creators.add(const Creator(name: 'Injected')),
-      throwsUnsupportedError,
-    );
   });
 
   test('failed load and retry rebuild the catalogue index and caches',
@@ -270,7 +258,6 @@ void main() {
 
     final emptyTrending = state.trending;
     final emptyRecent = state.recent;
-    final emptyCreators = state.creators;
 
     await state.load();
     expect(state.isLoaded, isFalse);
@@ -279,13 +266,10 @@ void main() {
 
     final failedTrending = state.trending;
     final failedRecent = state.recent;
-    final failedCreators = state.creators;
     expect(failedTrending, isEmpty);
     expect(failedRecent, isEmpty);
-    expect(failedCreators, isEmpty);
     expect(failedTrending, isNot(same(emptyTrending)));
     expect(failedRecent, isNot(same(emptyRecent)));
-    expect(failedCreators, isNot(same(emptyCreators)));
 
     fail = false;
     await state.load();
@@ -295,10 +279,8 @@ void main() {
     expect(state.baseById(retryBase.id), same(retryBase));
     expect(state.featured, same(retryBase));
     expect(state.recent.single, same(retryBase));
-    expect(state.creators.single.name, 'Tester');
     expect(state.trending, isNot(same(failedTrending)));
     expect(state.recent, isNot(same(failedRecent)));
-    expect(state.creators, isNot(same(failedCreators)));
   });
 }
 

@@ -50,13 +50,14 @@ class FeaturedBaseCard extends StatelessWidget {
                     stops: [0.0, 0.26, 0.58, 1.0],
                   ),
                 ),
-                Positioned(left: 12, top: 12, child: HallBadge(label: base.hallBadge)),
+                Positioned(
+                    left: 12, top: 12, child: HallBadge(label: base.hallBadge)),
                 Positioned(
                   right: 12,
                   top: 12,
                   child: HeartButton(
                     favorited: favorited,
-                    onTap: () => state.toggleFavorite(base.id),
+                    onTap: () => StateScope.toggleFavorite(context, base.id),
                   ),
                 ),
                 Positioned(

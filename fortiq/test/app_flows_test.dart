@@ -10,6 +10,7 @@ import 'package:fortiq/app/theme/app_theme.dart';
 import 'package:fortiq/core/widgets/app_bottom_nav.dart';
 import 'package:fortiq/core/widgets/badges.dart';
 import 'package:fortiq/core/widgets/buttons.dart';
+import 'package:fortiq/core/storage/local_store.dart';
 import 'package:fortiq/core/widgets/chips.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/base_layout.dart';
@@ -20,13 +21,12 @@ import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/base_detail/base_detail_screen.dart';
 import 'package:fortiq/features/base_detail/expanded_base_preview.dart';
 import 'package:fortiq/features/collections/collections_screen.dart';
-import 'package:fortiq/features/community/community_screen.dart';
 import 'package:fortiq/features/explore/explore_screen.dart';
 import 'package:fortiq/features/explore/widgets/explore_base_card.dart';
 import 'package:fortiq/features/filters/filters_sheet.dart';
 import 'package:fortiq/features/home/home_screen.dart';
 import 'package:fortiq/features/home/widgets/featured_base_card.dart';
-import 'package:fortiq/features/profile/profile_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
 const _launchChannel = MethodChannel('plugins.flutter.io/url_launcher');
@@ -61,6 +61,7 @@ void main() {
   });
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     messenger.setMockMethodCallHandler(_shareChannel, null);
@@ -76,7 +77,7 @@ void main() {
     messenger.setMockMethodCallHandler(SystemChannels.platform, null);
   });
 
-  testWidgets('MainShell visits all five bottom-navigation destinations',
+  testWidgets('MainShell visits only the three production destinations',
       (tester) async {
     final state = await _pumpLoadedShell(tester);
     const destinations = <({int index, String label, Type screen})>[
@@ -87,11 +88,11 @@ void main() {
         label: 'Collections',
         screen: CollectionsScreen
       ),
-      (index: AppTab.community, label: 'Community', screen: CommunityScreen),
-      (index: AppTab.profile, label: 'Profile', screen: ProfileScreen),
     ];
 
     expect(find.byType(IndexedStack), findsOneWidget);
+    expect(_tabLabel('Community'), findsNothing);
+    expect(_tabLabel('Profile'), findsNothing);
     for (final destination in destinations) {
       if (destination.index != AppTab.home) {
         await _tapTab(tester, destination.label);
@@ -109,6 +110,24 @@ void main() {
       );
       expect(_tabLabel(destination.label), findsOneWidget);
     }
+
+    final stack = tester.widget<IndexedStack>(find.byType(IndexedStack));
+    expect(
+      stack.children.map((child) => child.runtimeType),
+      [HomeScreen, ExploreScreen, CollectionsScreen],
+    );
+
+    state.tabIndex = 4;
+    await tester.pumpAndSettle();
+    expect(state.tabIndex, AppTab.collections);
+    expect(
+      tester.widget<IndexedStack>(find.byType(IndexedStack)).index,
+      AppTab.collections,
+    );
+    expect(
+      tester.widget<AppBottomNav>(find.byType(AppBottomNav)).currentIndex,
+      AppTab.collections,
+    );
   });
 
   testWidgets('IndexedStack preserves Home/Explore scroll and search input',
@@ -144,7 +163,7 @@ void main() {
     await tester.pump();
     expect(state.query, 'obs');
 
-    await _tapTab(tester, 'Community');
+    await _tapTab(tester, 'Collections');
     await _tapTab(tester, 'Explore');
     expect(state.query, 'obs');
     expect(tester.widget<TextField>(field).controller,
@@ -404,6 +423,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(state.isFavorite(id), isTrue);
     expect(tester.widget<HeartButton>(heart).favorited, isTrue);
+    expect(await LocalStore().loadFavouriteIds(), [id]);
 
     await _tapTab(tester, 'Collections');
     final savedName = find.descendant(
@@ -425,6 +445,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(state.isFavorite(id), isFalse);
     expect(tester.widget<HeartButton>(detailHeart).favorited, isFalse);
+    expect(await LocalStore().loadFavouriteIds(), isEmpty);
 
     await tester.tap(_detailAction('Back'));
     await tester.pumpAndSettle();
@@ -445,57 +466,44 @@ void main() {
     expect(tester.widget<HeartButton>(heart).favorited, isFalse);
   });
 
-  testWidgets('Detail and Community share follow state in both directions',
+  testWidgets('saved favourites restore into a new AppState', (tester) async {
+    await _pumpLoadedShell(tester, tabIndex: AppTab.explore);
+    await tester.tap(
+      find.descendant(
+        of: _exploreCard('obsidian-ring'),
+        matching: find.byType(HeartButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final restored = AppState();
+    addTearDown(restored.dispose);
+    await tester.runAsync(restored.loadPersistedState);
+    await tester.runAsync(restored.load);
+    restored.tabIndex = AppTab.collections;
+    await _pumpShell(tester, restored);
+
+    expect(restored.isFavorite('obsidian-ring'), isTrue);
+    expect(find.text('Obsidian Ring'), findsOneWidget);
+  });
+
+  testWidgets('failed favourite writes preserve state and show an error',
       (tester) async {
-    final state = await _pumpLoadedShell(tester, tabIndex: AppTab.explore);
-    const creator = 'Kaiden';
-    await tester.tap(_exploreCard('obsidian-ring'));
-    await tester.pumpAndSettle();
-    final detailFollow = find.byKey(const Key('detail-follow'));
-    expect(
-      find.descendant(of: detailFollow, matching: find.text('Follow')),
-      findsOneWidget,
-    );
+    final state = AppState(store: _FailingFavouriteStore());
+    addTearDown(state.dispose);
+    await state.load();
+    state.tabIndex = AppTab.explore;
+    await _pumpShell(tester, state);
+    final base = state.bases.first;
 
-    await tester.tap(detailFollow);
-    await tester.pumpAndSettle();
-    expect(state.isFollowing(creator), isTrue);
-    expect(
-      find.descendant(of: detailFollow, matching: find.text('Following')),
-      findsOneWidget,
-    );
-    await tester.tap(_detailAction('Back'));
+    await tester.tap(find.byKey(Key('explore-favorite-${base.id}')));
     await tester.pumpAndSettle();
 
-    await _tapTab(tester, 'Community');
-    final communityFollow = find.byKey(ValueKey('community-follow-$creator'));
-    await tester.scrollUntilVisible(
-      communityFollow,
-      300,
-      scrollable: _verticalScrollIn(find.byType(CommunityScreen)),
-    );
-    await tester.pumpAndSettle();
+    expect(state.isFavorite(base.id), isFalse);
     expect(
-      find.descendant(of: communityFollow, matching: find.text('Following')),
+      find.text('Could not update saved bases. Please try again.'),
       findsOneWidget,
     );
-
-    await tester.tap(communityFollow);
-    await tester.pumpAndSettle();
-    expect(state.isFollowing(creator), isFalse);
-    expect(
-      find.descendant(of: communityFollow, matching: find.text('Follow')),
-      findsOneWidget,
-    );
-
-    await _tapTab(tester, 'Explore');
-    await tester.tap(_exploreCard('obsidian-ring'));
-    await tester.pumpAndSettle();
-    expect(
-      find.descendant(of: detailFollow, matching: find.text('Follow')),
-      findsOneWidget,
-    );
-    expect(state.isFollowing(creator), isFalse);
   });
 
   testWidgets(
@@ -892,4 +900,11 @@ class _PendingSampleRepository extends SampleBaseRepository {
 
   @override
   Future<List<BaseLayout>> loadAll() => _response;
+}
+
+class _FailingFavouriteStore extends LocalStore {
+  @override
+  Future<void> saveFavouriteIds(List<String> ids) async {
+    throw StateError('favourite write failed');
+  }
 }

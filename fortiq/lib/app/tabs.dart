@@ -4,6 +4,4 @@ abstract final class AppTab {
   static const int home = 0;
   static const int explore = 1;
   static const int collections = 2;
-  static const int community = 3;
-  static const int profile = 4;
 }

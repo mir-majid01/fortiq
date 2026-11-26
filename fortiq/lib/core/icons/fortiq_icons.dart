@@ -37,6 +37,7 @@ abstract final class FortiqIcons {
   static const List<String> check = ['M5 12l5 5L20 7'];
   static const List<String> close = ['M6 6l12 12M18 6L6 18'];
   static const List<String> plus = ['M12 5v14M5 12h14'];
+
   /// Star — reference renders it filled (no stroke).
   static const List<String> starFilled = [
     'M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.2 6.5 20.2l1-6.2L3 9.6l6.2-.9z',
@@ -50,12 +51,6 @@ abstract final class FortiqIcons {
   ];
   static const List<String> navCollections = [
     'M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z',
-  ];
-  static const List<String> navCommunity = [
-    'M16 20v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM20 20v-1a3.5 3.5 0 0 0-2.5-3.3M15.5 4.3a3.5 3.5 0 0 1 0 6.4',
-  ];
-  static const List<String> navProfile = [
-    'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
   ];
   // Home category icons.
   static const List<String> war = ['M5 19L19 5M14 5h5v5M5 5l14 14'];
