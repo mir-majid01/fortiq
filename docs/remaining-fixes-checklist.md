@@ -60,7 +60,7 @@
 - [x] Full `flutter test`: 167 tests green.
 - [x] Golden comparisons pass against the approved sample/reference renders.
 - [x] Build and validate debug APK: CRC clean, 195,208,931 bytes, SHA-256 recorded.
-- [ ] Publish a new private test APK for remote device testing.
+- [x] Publish private test build 4 and verify its remote size/SHA-256: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 - [x] Device-check branded splash, persisted onboarding, three-tab nav, and honest empty catalogue state on Infinix X6876.
 - [ ] Device-check favourites, links, previews, and updater when their implementations are available.
 - [ ] Publish a public APK only if the rights gate passes.

@@ -34,6 +34,8 @@ through GitHub Releases after the rights review passes.
 
 Private remote-testing releases: <https://github.com/mir-majid01/fortiq-test-builds>.
 These are personal debug builds and are not public rights-cleared releases.
+Latest device-test build:
+<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 
 ### Maintenance update — 2026-11-26
 
@@ -404,6 +406,9 @@ Visual comparison protocol (do not skip):
   “No rights-cleared bases are available.” Collections shows its honest empty
   state. Onboarding remained completed after relaunch; no onboarding screen
   reappeared. The launch capture showed the branded Fortiq splash.
+- Private test build 4 was uploaded and verified through the GitHub Releases
+  API. The remote APK asset size and SHA-256 match the local artifact exactly:
+  <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 
 Android build (after everything is green):
 
