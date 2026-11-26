@@ -9,21 +9,21 @@
 - [x] Onboarding completion persists across relaunch — confirmed by the user on the physical device.
 - [x] Public source repository, issue tracker, design/audit docs, and private remote-test APK channel.
 
-## In progress
+## Complete
 
-- [ ] Remove Profile and fabricated Community/fake Follow UI.
-- [ ] Reduce production bottom navigation to Home / Explore / Collections.
-- [ ] Persist favourites and handle stale/unavailable favourite IDs.
-- [ ] Update navigation, favourites, responsive, and golden tests.
+- [x] Remove Profile and fabricated Community/fake Follow UI.
+- [x] Reduce production bottom navigation to Home / Explore / Collections.
+- [x] Persist favourites and handle stale/unavailable favourite IDs.
+- [x] Update navigation, favourites, responsive, and golden tests.
 
 ## Rights-gated real catalogue
 
-- [ ] Add per-source rights manifest and lossless source metadata model.
-- [ ] Decode Home/Builder village from the official link payload; never guess Builder Hall level.
-- [ ] Preserve source type, tags, description, attribution, image URL, link, and added date.
-- [ ] Enable only records with documented permission; current cleared count is zero.
-- [ ] Production shows an honest unavailable state instead of sample/fake bases.
-- [ ] Keep full unresolved JSON out of the public repository and public APK releases.
+- [x] Add per-source rights manifest and lossless source metadata model.
+- [x] Decode Home/Builder village from the official link payload; never guess Builder Hall level.
+- [x] Preserve source type, tags, description, attribution, image URL, link, and added date.
+- [x] Enable only records with documented permission; current cleared count is zero.
+- [x] Production shows an honest unavailable state instead of sample/fake bases.
+- [x] Keep full unresolved JSON out of the public repository and APK packaging.
 
 ## Real previews and game links
 
@@ -56,11 +56,12 @@
 
 ## Final verification and delivery
 
-- [ ] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings.
-- [ ] Full `flutter test`: all green.
-- [ ] Regenerate affected goldens and compare with approved references.
-- [ ] Build and validate final debug APK.
+- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings.
+- [x] Full `flutter test`: 167 tests green.
+- [x] Golden comparisons pass against the approved sample/reference renders.
+- [x] Build and validate debug APK: CRC clean, 195,208,931 bytes, SHA-256 recorded.
 - [ ] Publish a new private test APK for remote device testing.
-- [ ] Device-check splash, onboarding, three-tab nav, favourites, catalogue state, links, previews, and updater.
+- [x] Device-check branded splash, persisted onboarding, three-tab nav, and honest empty catalogue state on Infinix X6876.
+- [ ] Device-check favourites, links, previews, and updater when their implementations are available.
 - [ ] Publish a public APK only if the rights gate passes.
-- [ ] Update `HANDOVER.md` with exact evidence and remaining limitations.
+- [x] Update `HANDOVER.md` with exact evidence and remaining limitations.

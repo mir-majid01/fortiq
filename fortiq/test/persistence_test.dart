@@ -545,6 +545,9 @@ class _TestRepository implements BaseRepository {
 
   @override
   List<String> get trendingIds => const [];
+
+  @override
+  bool get isCatalogueUnavailable => false;
 }
 
 class _ControlledStore extends LocalStore {

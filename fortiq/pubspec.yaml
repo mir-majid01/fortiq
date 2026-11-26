@@ -24,7 +24,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/data/
+    - assets/data/catalogue_rights.json
+    - assets/data/cleared_catalogue.json
     - assets/branding/
   fonts:
     - family: Manrope

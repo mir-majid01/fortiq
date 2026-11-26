@@ -10,6 +10,7 @@ import 'package:fortiq/core/widgets/app_bottom_nav.dart';
 import 'package:fortiq/core/widgets/badges.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/core/widgets/tab_page.dart';
+import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/collections/collections_screen.dart';
 import 'package:fortiq/features/shared/placeholder_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -271,7 +272,7 @@ Future<AppState> _pumpHost(
     if (storedFavourites.isNotEmpty)
       LocalStore.favouriteIdsKey: storedFavourites,
   });
-  final state = AppState();
+  final state = AppState(repository: SampleBaseRepository());
   addTearDown(state.dispose);
   await tester.runAsync(state.loadPersistedState);
   if (load) await state.load();

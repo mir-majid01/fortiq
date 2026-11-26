@@ -85,7 +85,7 @@ void main() {
 
   testWidgets('Explore renders the sample count and quick chips',
       (tester) async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     await state.load();
     await tester.pumpWidget(
       StateScope(
@@ -111,7 +111,7 @@ void main() {
   });
 
   testWidgets('All chip shows both villages', (tester) async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     await state.load();
     await tester.pumpWidget(
       StateScope(
@@ -131,7 +131,7 @@ void main() {
 
   testWidgets('Explore uses shared search state and suggestions update it',
       (tester) async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     await state.load();
     await tester.pumpWidget(
       StateScope(
@@ -163,7 +163,7 @@ void main() {
 
   testWidgets('Home Legend category opens matching Explore results',
       (tester) async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     await state.load();
     state.selectHallLevel(17);
     await tester.pumpWidget(
@@ -199,7 +199,7 @@ void main() {
   });
 
   test('Home handoff preserves search and scopes filters to the selection', () {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     state.selectHallLevel(16);
     state.setSearch('obsidian');
 
@@ -241,7 +241,7 @@ void main() {
     tester.view.viewInsets = const FakeViewPadding(bottom: 300);
     addTearDown(tester.view.reset);
 
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
     await tester.pumpWidget(
@@ -442,7 +442,7 @@ void main() {
 }
 
 Future<AppState> _loadedState(WidgetTester tester) async {
-  final state = AppState();
+  final state = AppState(repository: SampleBaseRepository());
   addTearDown(state.dispose);
   await state.load();
   return state;
@@ -498,4 +498,7 @@ class _FailingThenSampleRepository implements BaseRepository {
 
   @override
   List<String> get recentIds => const [];
+
+  @override
+  bool get isCatalogueUnavailable => false;
 }

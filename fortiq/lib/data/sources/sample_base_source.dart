@@ -26,6 +26,9 @@ class SampleBaseRepository implements BaseRepository {
   @override
   List<String> get recentIds =>
       const ['quiet-storm', 'basalt-gate', 'silent-meridian'];
+
+  @override
+  bool get isCatalogueUnavailable => false;
 }
 
 const int _homeVillageCount = 86;
@@ -152,20 +155,81 @@ final List<BaseLayout> _designBases = [
 ];
 
 const List<String> _adjectives = [
-  'Amber', 'Ashen', 'Azure', 'Blazing', 'Bramble', 'Cinder', 'Cobalt',
-  'Crimson', 'Duskfall', 'Ember', 'Falcon', 'Frost', 'Gilded', 'Granite',
-  'Hallowed', 'Ironclad', 'Jade', 'Lunar', 'Marble', 'Molten', 'Nimbus',
-  'Onyx', 'Pine', 'Quarry', 'Raven', 'Rustic', 'Sable', 'Solar', 'Thunder',
-  'Verdant', 'Winter', 'Zephyr', 'Highland', 'Lowland', 'Storm', 'Starfall',
-  'Moss', 'Fen', 'Gale', 'Emberfall',
+  'Amber',
+  'Ashen',
+  'Azure',
+  'Blazing',
+  'Bramble',
+  'Cinder',
+  'Cobalt',
+  'Crimson',
+  'Duskfall',
+  'Ember',
+  'Falcon',
+  'Frost',
+  'Gilded',
+  'Granite',
+  'Hallowed',
+  'Ironclad',
+  'Jade',
+  'Lunar',
+  'Marble',
+  'Molten',
+  'Nimbus',
+  'Onyx',
+  'Pine',
+  'Quarry',
+  'Raven',
+  'Rustic',
+  'Sable',
+  'Solar',
+  'Thunder',
+  'Verdant',
+  'Winter',
+  'Zephyr',
+  'Highland',
+  'Lowland',
+  'Storm',
+  'Starfall',
+  'Moss',
+  'Fen',
+  'Gale',
+  'Emberfall',
 ];
 
 const List<String> _nouns = [
-  'Bastion', 'Citadel', 'Outpost', 'Spire', 'Vault', 'Keep', 'Haven',
-  'Rampart', 'Bulwark', 'Parapet', 'Fortress', 'Redoubt', 'Stronghold',
-  'Atrium', 'Labyrinth', 'Ward', 'Watch', 'Perch', 'Nest', 'Roost',
-  'Pinnacle', 'Summit', 'Vanguard', 'Ridge', 'Canyon', 'Mesa', 'Refuge',
-  'Embrace', 'Halo', 'Aegis', 'Crescent', 'Prism',
+  'Bastion',
+  'Citadel',
+  'Outpost',
+  'Spire',
+  'Vault',
+  'Keep',
+  'Haven',
+  'Rampart',
+  'Bulwark',
+  'Parapet',
+  'Fortress',
+  'Redoubt',
+  'Stronghold',
+  'Atrium',
+  'Labyrinth',
+  'Ward',
+  'Watch',
+  'Perch',
+  'Nest',
+  'Roost',
+  'Pinnacle',
+  'Summit',
+  'Vanguard',
+  'Ridge',
+  'Canyon',
+  'Mesa',
+  'Refuge',
+  'Embrace',
+  'Halo',
+  'Aegis',
+  'Crescent',
+  'Prism',
 ];
 
 const List<Creator> _creators = [
@@ -209,7 +273,12 @@ const List<List<String>> _bbCategories = [
 ];
 
 const List<String> _styles = [
-  'Box', 'Diamond', 'Ring', 'Island', 'Symmetrical', 'Asymmetrical',
+  'Box',
+  'Diamond',
+  'Ring',
+  'Island',
+  'Symmetrical',
+  'Asymmetrical',
 ];
 
 const List<int> _ageHours = [5, 26, 50, 96, 170, 340];

@@ -4,13 +4,13 @@ Fortiq is a Flutter Android/iOS app for discovering Clash of Clans base layouts.
 
 ## Repository status
 
-This repository is being organized during a maintenance pass. The current priorities are:
+Maintenance status:
 
-- Native Android/iOS Fortiq splash branding and launcher icons.
-- Persistent onboarding and favourites.
-- Removal of fabricated Community/Profile UI.
-- A rights-gated real catalogue pipeline with real previews and unchanged Clash share links.
-- An in-app updater backed by public GitHub Releases.
+- Native Android/iOS Fortiq splash branding and launcher icons are complete.
+- Persistent onboarding and favourites are complete.
+- Fabricated Community/Profile UI is removed; production has three tabs.
+- The rights-gated catalogue pipeline is complete. Zero sources are currently cleared, so production shows an honest unavailable state and ships no unresolved catalogue JSON.
+- Real preview loading, defensive taxonomy, and the in-app GitHub Releases updater remain queued.
 
 The app is unofficial and is not endorsed by or affiliated with Supercell or Clash of Clans.
 
@@ -41,7 +41,7 @@ flutter test
 flutter build apk --debug
 ```
 
-The rights-uncleared catalogue asset is omitted from the public source snapshot. Until the rights-gated catalogue migration lands, use the existing sample repository only for local UI/reference tests; never present it as real production data.
+The rights-uncleared catalogue asset is omitted from the public source snapshot. Production uses the rights-gated repository and currently returns zero entries; the sample repository is injected only by local UI/reference tests and is never presented as real production data.
 
 ## Releases and APK downloads
 

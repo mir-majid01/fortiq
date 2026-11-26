@@ -1,21 +1,39 @@
 /// Core domain models for Fortiq.
 library;
 
-/// Which game village a layout belongs to.
-enum Village { home, builder }
+import 'catalogue_rights.dart';
+
+/// Which game village a layout belongs to. [unknown] is used when an upstream
+/// link does not contain a documented OpenLayout village marker.
+enum Village { home, builder, unknown }
 
 extension VillageX on Village {
-  String get label => this == Village.home ? 'Home Village' : 'Builder Base';
+  String get label => switch (this) {
+        Village.home => 'Home Village',
+        Village.builder => 'Builder Base',
+        Village.unknown => 'Unknown village',
+      };
 
   /// Hall prefix used across the UI ("TH 16" / "BH 8").
-  String get hallPrefix => this == Village.home ? 'TH' : 'BH';
+  String get hallPrefix => switch (this) {
+        Village.home => 'TH',
+        Village.builder => 'BH',
+        Village.unknown => '',
+      };
 
   /// Full hall name ("Town Hall 16" / "Builder Hall 8").
-  String get hallName =>
-      this == Village.home ? 'Town Hall' : 'Builder Hall';
+  String get hallName => switch (this) {
+        Village.home => 'Town Hall',
+        Village.builder => 'Builder Hall',
+        Village.unknown => 'Hall',
+      };
 
   /// Highest hall level in the current game.
-  int get maxHall => this == Village.home ? 18 : 10;
+  int get maxHall => switch (this) {
+        Village.home => 18,
+        Village.builder => 10,
+        Village.unknown => 0,
+      };
 }
 
 /// A base-layout creator.
@@ -33,7 +51,7 @@ class Creator {
 ///
 /// `rating`, `copies` and `verified` come from curation. The community
 /// catalogue provides real layout data but no live statistics, so those fields
-/// are nullable and the UI falls back gracefully when absent.
+/// stay absent unless a future source supplies evidence.
 class BaseLayout {
   const BaseLayout({
     required this.id,
@@ -53,15 +71,29 @@ class BaseLayout {
     this.verified = false,
     this.gameLink,
     this.description,
+    this.sourceId,
+    this.sourceCategories = const [],
+    this.sourceTags = const [],
+    this.sourceAttribution,
+    this.sourceUrl,
+    this.sourceTownHall,
+    this.sourceAdded,
+    this.addedAt,
+    this.rightsStatus = CatalogueRightsStatus.unresolved,
   });
 
   final String id;
   final String name;
   final Village village;
-  final int hallLevel;
 
-  /// e.g. ["War", "Anti 3 Star"] — joined with " · " in the UI.
+  /// Null when the source does not document a hall level for [village]. In
+  /// particular, an OpenLayout `WB` payload never supplies a Builder Hall level.
+  final int? hallLevel;
+
+  /// Explicitly mapped Fortiq categories; empty means unclassified.
   final List<String> categories;
+
+  /// Empty for upstream records unless a source explicitly classifies style.
   final String layoutStyle;
   final int previewSeed;
   final String? imageUrl;
@@ -79,16 +111,40 @@ class BaseLayout {
   final String? gameLink;
   final String? description;
 
+  /// Lossless upstream metadata. The upstream schema has no separate source
+  /// page URL, so [sourceUrl] preserves its record URL exactly.
+  final String? sourceId;
+  final List<String> sourceCategories;
+  final List<String> sourceTags;
+  final String? sourceAttribution;
+  final String? sourceUrl;
+  final int? sourceTownHall;
+  final String? sourceAdded;
+  final DateTime? addedAt;
+  final CatalogueRightsStatus rightsStatus;
+
   /// True for the bundled design-placeholder dataset, false for real data.
   final bool isSample;
 
-  String get hallBadge => '${village.hallPrefix} $hallLevel';
-  String get hallFullName => '${village.hallName} $hallLevel';
-  String get categoriesLabel => categories.join(' · ');
-  String get creatorHandle => 'by ${creator.name}';
-  String get updatedText =>
-      updatedLabel ??
-      (updatedAt != null ? 'Updated ${_relative(updatedAt!)}' : '—');
+  String get hallBadge =>
+      hallLevel == null ? village.label : '${village.hallPrefix} $hallLevel';
+  String get hallFullName =>
+      hallLevel == null ? village.hallName : '${village.hallName} $hallLevel';
+  String get categoriesLabel =>
+      categories.isEmpty ? 'Unclassified' : categories.join(' · ');
+  String get creatorHandle {
+    final attribution = sourceAttribution?.trim();
+    if (attribution != null && attribution.isNotEmpty) {
+      return 'Source: $attribution';
+    }
+    final name = creator.name.trim();
+    return name.isEmpty ? 'Source unavailable' : 'by $name';
+  }
+
+  String get updatedText => addedAt != null
+      ? 'Added ${_relative(addedAt!)}'
+      : updatedLabel ??
+          (updatedAt != null ? 'Updated ${_relative(updatedAt!)}' : '—');
 
   static String _relative(DateTime then) {
     final days = DateTime.now().difference(then).inDays;

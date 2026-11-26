@@ -14,6 +14,7 @@ import '../../core/widgets/state_scope.dart';
 import '../../data/models/base_layout.dart';
 import '../../features/base_preview/base_preview.dart';
 import '../base_detail/base_detail_screen.dart';
+import '../shared/placeholder_tab.dart';
 import 'widgets/featured_base_card.dart';
 import 'widgets/trending_card.dart';
 
@@ -24,6 +25,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = StateScope.of(context);
+    if (state.catalogueUnavailable) {
+      return const PlaceholderTab(
+        key: Key('catalogue-unavailable'),
+        title: 'Catalogue unavailable',
+        message: 'No rights-cleared bases are available.',
+      );
+    }
     return TabPage(
       child: ListView(
         padding: EdgeInsets.only(bottom: TabPage.contentBottomPadding(context)),

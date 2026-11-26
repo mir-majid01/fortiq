@@ -7,6 +7,7 @@ import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/theme/app_theme.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/base_layout.dart';
+import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/base_detail/base_detail_screen.dart';
 import 'package:fortiq/features/base_detail/expanded_base_preview.dart';
 
@@ -41,7 +42,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.reset);
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
     final base = state.baseById('obsidian-ring')!;
@@ -74,12 +75,54 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets(
+      'real catalogue details show source attribution without an empty style chip',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.reset);
+    final state = AppState(repository: SampleBaseRepository());
+    addTearDown(state.dispose);
+    await state.load();
+    const base = BaseLayout(
+      id: 'attributed-detail',
+      name: 'Attributed Detail',
+      village: Village.home,
+      hallLevel: 17,
+      categories: ['War'],
+      layoutStyle: '',
+      previewSeed: 3,
+      creator: Creator(name: ''),
+      isSample: false,
+      gameLink:
+          'https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AHV%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA',
+      sourceAttribution: 'Fixture Source',
+    );
+
+    await tester.pumpWidget(
+      StateScope(
+        state: state,
+        child: MaterialApp(
+          theme: buildFortiqTheme(),
+          home: const BaseDetailScreen(base: base),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Source: Fixture Source'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) => widget is Text && widget.data == ''),
+      findsNothing,
+    );
+  });
+
   testWidgets('real catalogue entries explain missing stats and provenance',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.reset);
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
     final sample = state.baseById('obsidian-ring')!;

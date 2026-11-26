@@ -8,11 +8,12 @@ import 'package:fortiq/core/widgets/buttons.dart';
 import 'package:fortiq/core/widgets/chips.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/filters.dart';
+import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/filters/filters_sheet.dart';
 
 void main() {
   Future<AppState> pumpHost(WidgetTester tester) async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     await state.load();
     await tester.pumpWidget(
       StateScope(
@@ -128,8 +129,7 @@ void main() {
     final row = find.ancestor(
       of: toggle,
       matching: find.byWidgetPredicate(
-        (widget) =>
-            widget is Container && widget.constraints?.minHeight == 48,
+        (widget) => widget is Container && widget.constraints?.minHeight == 48,
       ),
     );
     expect(row, findsOneWidget);
@@ -160,16 +160,14 @@ void main() {
       matchRoot: true,
     );
     expect(rowTapNodes, findsOneWidget);
-    final usesToggledState =
-        switchNode.hasFlag(SemanticsFlag.hasToggledState);
+    final usesToggledState = switchNode.hasFlag(SemanticsFlag.hasToggledState);
     expect(
       usesToggledState || switchNode.hasFlag(SemanticsFlag.hasCheckedState),
       isTrue,
     );
     expect(
-      switchNode.hasFlag(usesToggledState
-          ? SemanticsFlag.isToggled
-          : SemanticsFlag.isChecked),
+      switchNode.hasFlag(
+          usesToggledState ? SemanticsFlag.isToggled : SemanticsFlag.isChecked),
       isFalse,
     );
 
@@ -178,9 +176,8 @@ void main() {
 
     final toggledNode = switches.evaluate().single;
     expect(
-      toggledNode.hasFlag(usesToggledState
-          ? SemanticsFlag.isToggled
-          : SemanticsFlag.isChecked),
+      toggledNode.hasFlag(
+          usesToggledState ? SemanticsFlag.isToggled : SemanticsFlag.isChecked),
       isTrue,
     );
     semantics.dispose();

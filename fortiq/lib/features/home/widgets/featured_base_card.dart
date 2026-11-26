@@ -83,7 +83,7 @@ class FeaturedBaseCard extends StatelessWidget {
                             Text(
                               // The reference surfaces the distinctive tag
                               // ("Anti 3 Star · by Kaiden").
-                              '${base.categories.last} · ${base.creatorHandle}',
+                              '${base.categories.isEmpty ? 'Unclassified' : base.categories.last} · ${base.creatorHandle}',
                               style: AppTypography.featuredSubtle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

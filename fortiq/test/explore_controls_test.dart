@@ -7,6 +7,7 @@ import 'package:fortiq/core/widgets/chips.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/models/filters.dart';
+import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/explore/explore_screen.dart';
 
 void main() {
@@ -40,7 +41,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.reset);
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
 
@@ -72,7 +73,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.reset);
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
     state.filters.categories.add('War');
@@ -102,7 +103,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.reset);
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
     await tester.pumpWidget(

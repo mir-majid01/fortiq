@@ -20,6 +20,10 @@ List<BaseLayout> queryBases(
         b.creator.name,
         b.layoutStyle,
         ...b.categories,
+        ...b.sourceCategories,
+        ...b.sourceTags,
+        if (b.sourceAttribution != null) b.sourceAttribution!,
+        if (b.description != null) b.description!,
       ].join(' ').toLowerCase();
       return haystack.contains(q);
     });

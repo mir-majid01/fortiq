@@ -5,6 +5,7 @@ import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/tabs.dart';
 import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/repositories/base_repository.dart';
+import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _base = BaseLayout(
@@ -28,7 +29,7 @@ void main() {
 
   test('tab selection clamps stale indices to the three production tabs',
       () async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
 
     state.tabIndex = -1;
@@ -77,7 +78,7 @@ void main() {
   });
 
   test('search suggestions respect the active village filter', () async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
 
@@ -331,4 +332,7 @@ class _TestRepository implements BaseRepository {
 
   @override
   List<String> get recentIds => const [];
+
+  @override
+  bool get isCatalogueUnavailable => false;
 }

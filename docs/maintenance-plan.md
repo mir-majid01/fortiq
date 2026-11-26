@@ -127,12 +127,12 @@ final ids = prefs.getStringList('fortiq.favourites.ids.v1') ?? <String>[];
 - Consumes: `LocalStore` favourite IDs.
 - Produces: three-tab production navigation (Home/Explore/Collections), no fake creator profiles, persistent favourite set.
 
-- [ ] Add failing navigation tests asserting no Profile item/screen and no Community item when no genuine creator dataset is enabled.
-- [ ] Remove Profile tab, route, nav item, and Home profile affordance. Preserve nav pill/item styling and indices 0–2.
-- [ ] Remove fabricated Community creators and Follow UI. Do not convert upstream `builder` credits into profiles.
-- [ ] Restore favourites from `LocalStore` before edits; write on toggle; keep IDs unique with `Set<String>`.
-- [ ] Handle stale favourite IDs explicitly in Collections with an unavailable-entry state rather than dropping them silently.
-- [ ] Update responsive navigation tests from five items to three and regenerate affected goldens.
+- [x] Add failing navigation tests asserting no Profile item/screen and no Community item when no genuine creator dataset is enabled.
+- [x] Remove Profile tab, route, nav item, and Home profile affordance. Preserve nav pill/item styling and indices 0–2.
+- [x] Remove fabricated Community creators and Follow UI. Do not convert upstream `builder` credits into profiles.
+- [x] Restore favourites from `LocalStore` before edits; write on toggle; keep IDs unique with `Set<String>`.
+- [x] Handle stale favourite IDs explicitly in Collections with an unavailable-entry state rather than dropping them silently.
+- [x] Update responsive navigation tests from five items to three and regenerate affected goldens.
 
 ---
 
@@ -154,12 +154,12 @@ final ids = prefs.getStringList('fortiq.favourites.ids.v1') ?? <String>[];
 - Consumes: upstream `bases.json` fields `id`, `name`, `town_hall`, `type`, `link`, `description`, `builder`, `tags`, `added`, `image`.
 - Produces: entries with `sourceCategories`, `sourceTags`, `sourceAttribution`, `sourceUrl`, `addedAt`, `imageUrl`, `gameLink`, `village`, nullable hall level, and rights status.
 
-- [ ] Add failing tests asserting 5,162 unique source records, exact URL forwarding, no duplicate IDs/links/images, source tags preserved, and no fabricated ratings/copies/verification.
-- [ ] Add a per-source rights manifest. Current evidence clears **zero** third-party sources for bulk content/preview redistribution; unresolved records must be excluded from production.
-- [ ] Keep sample data test-only. Production repository returns only rights-cleared records; when none are cleared, show an honest catalogue-unavailable state rather than samples.
-- [ ] Decode village from the documented OpenLayout payload (`HV`/`WB`); never infer Builder Hall level from `town_hall` without evidence. Unknown hall remains unknown.
-- [ ] Preserve original `type`, `tags`, `builder`, `added`, and source URL. Map categories only through an explicit table; unknown values remain unclassified.
-- [ ] Retain MIT notice and add an unofficial/no-endorsement disclosure. Do not scrape, hotlink, or cache unresolved previews.
+- [x] Add failing tests for exact URL forwarding, no duplicate IDs/links/images, source tags preserved, no fabricated ratings/copies/verification, and fail-closed schema/rights parsing. The unresolved 5,162-record corpus remains local-only.
+- [x] Add a per-source rights manifest. Current evidence clears **zero** third-party sources for bulk content/preview redistribution; unresolved records are excluded from production.
+- [x] Keep sample data test-only. Production repository returns only rights-cleared records; when none are cleared, show an honest catalogue-unavailable state rather than samples.
+- [x] Decode village from the documented OpenLayout payload (`HV`/`WB`); never infer Builder Hall level from `town_hall` without evidence. Unknown hall remains unknown.
+- [x] Preserve original `type`, `tags`, `builder`, `added`, and source URL. Map categories only through an explicit table; unknown values remain unclassified.
+- [x] Retain MIT notice and add an unofficial/no-endorsement disclosure. Do not scrape, hotlink, or cache unresolved previews.
 
 ### Task 5: Real preview widget and honest deep-link fallback
 

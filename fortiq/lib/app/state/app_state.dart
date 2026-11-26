@@ -47,6 +47,7 @@ class AppState extends ChangeNotifier {
   bool get isLoaded => _loaded;
   bool get isLoading => _loading;
   String? get loadError => _loadError;
+  bool get catalogueUnavailable => _loaded && repository.isCatalogueUnavailable;
 
   BaseLayout? baseById(String? id) {
     if (id == null) return null;
@@ -183,8 +184,9 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  String get greetingTitle =>
-      'Fresh ${_village.hallPrefix} $_hallLevel layouts today';
+  String get greetingTitle => catalogueUnavailable
+      ? 'Catalogue unavailable'
+      : 'Fresh ${_village.hallPrefix} $_hallLevel layouts today';
 
   /// Opens Explore scoped to the Home selection — the chosen village and hall
   /// level, narrowed to [category] when a category pill was tapped.

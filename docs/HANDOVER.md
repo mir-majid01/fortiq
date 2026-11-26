@@ -19,7 +19,7 @@ The three sources of truth, all on disk:
 |---|---|
 | `C:\Users\HP\Desktop\Fortiq\reference\` | The design export: `Splash.dc.html`, `Onboarding.dc.html`, `Main.dc.html` (Home), `Explore.dc.html`, `Filters.dc.html`, `Detail.dc.html`, `BasePreview.dc.html`, `canvas.json` (artboard notes). `_runtime/` is the export tool's JS — **not** part of the design. |
 | `C:\Users\HP\Desktop\Fortiq\fortiq\` | The Flutter app (this is the deliverable). |
-| `C:\Users\HP\Desktop\Fortiq\clash-bases\` | Upstream community catalogue (Rust/WASM site). Its `bases.json` (5,162 real bases with official `link.clashofclans.com` deep links) is already copied into the app as `fortiq/assets/data/clash_bases_catalog.json`. |
+| `C:\Users\HP\Desktop\Fortiq\clash-bases\` | Local upstream audit copy only. Its 5,162-record `bases.json` is not packaged or published because third-party content/preview redistribution rights remain unresolved. |
 
 Supporting artifacts: `C:\Users\HP\Desktop\Fortiq\shots\ref_*.png` are
 headless-Chrome renders of the reference artboards;
@@ -44,12 +44,22 @@ These are personal debug builds and are not public rights-cleared releases.
   passed, analyzer had 0 errors/0 warnings, and completion is read on cold start.
   The user confirmed on the physical device that onboarding no longer reappears
   after relaunch.
-- Profile/fake Community removal and persistent favourites are in progress.
+- Profile/fake Community removal and persistent favourites are complete and
+  reviewed. Production navigation is Home / Explore / Collections; favourites
+  persist through `shared_preferences` and stale IDs remain removable.
+- The rights-gated catalogue mapper is complete and reviewed. Production uses
+  `ClashBasesCatalogRepository`, preserves source metadata, detects only
+  documented HV/WB payloads, rejects unsupported schemas/duplicates, and shows
+  an honest unavailable state. Sample data is injected only by tests.
+- Catalogue rights remain unresolved: zero upstream sources are cleared for
+  third-party content/preview redistribution. The full 5,162-record JSON is not
+  packaged or published; the app ships an empty cleared dataset and rights
+  manifest.
+- Final Task 4 verification: `flutter analyze --no-fatal-infos` exited 0 with
+  0 errors/0 warnings; `flutter test --reporter expanded` passed 167 tests,
+  including 19 rights-gated catalogue tests and all nine golden comparisons.
 - The updater design is approved and published in `docs/updater-design.md` on
   the public repository; implementation is queued.
-- Catalogue rights remain unresolved: zero upstream sources are cleared for
-  third-party content/preview redistribution, so the full JSON stays out of the
-  public repository and public APK releases.
 
 ---
 
@@ -77,7 +87,7 @@ export PUB_CACHE=/c/flutter-sdk/.pub-cache
 **Analyzer note:** Flutter 3.50 deprecates `package:flutter/material.dart` in
 favor of `material_ui`. Every file emits an info-level
 `deprecated_member_use`. **Leave these** — migrating is a separate decision,
-not part of this handover. Current baseline: **0 errors, 0 warnings, 113
+not part of this handover. Current baseline: **0 errors, 0 warnings, 110
 infos** (Flutter 3.50 deprecations, prefer-const suggestions, and existing
 test/API deprecations). Use `flutter analyze --no-fatal-infos` for a successful
 exit while retaining the required zero-error/zero-warning gate.
@@ -87,16 +97,17 @@ exit while retaining the required zero-error/zero-warning gate.
 ## 3. Architecture
 
 Dependency-light by design: **no state-management or routing packages**.
-Only three pub deps: `share_plus` (share sheet), `url_launcher` (game deep
-links), plus dev `flutter_lints`. Fonts are bundled TTFs (no google_fonts).
+Runtime dependencies are `flutter_native_splash`, `share_plus`,
+`shared_preferences`, and `url_launcher`; dev dependencies include
+`flutter_lints` and `image`. Fonts are bundled TTFs (no google_fonts).
 
 ```
 fortiq/lib/
   main.dart                      # entry; sets SystemUiOverlayStyle
   app/
     app.dart                     # FortiqApp: splash → onboarding → MainShell (AnimatedSwitcher)
-    router.dart                  # MainShell = IndexedStack of 5 tabs
-    tabs.dart                    # AppTab constants (home/explore/collections/community/profile)
+    router.dart                  # MainShell = IndexedStack of 3 tabs
+    tabs.dart                    # AppTab constants (home/explore/collections)
     state/app_state.dart         # THE state container (ChangeNotifier) — see §4
     theme/
       app_colors.dart            # every colour token (values lifted from the HTML)
@@ -112,20 +123,21 @@ fortiq/lib/
       chips.dart                 # PillChip, HallChip, SegmentedToggle, ToggleSwitch
       badges.dart                # HallBadge, HeartButton, PreviewScrim
       app_bottom_nav.dart        # floating pill nav (SafeArea-aware)
-      tab_page.dart              # shared TabPage scaffold + TabNav used by all five tabs
+      tab_page.dart              # shared TabPage scaffold + nav used by all three tabs
       expanded_tap_area.dart     # NEW — 44×44 hit targets without visual change
       section_header.dart, creator_avatar.dart, game_actions.dart
   features/
     splash/, onboarding/, home/ (+widgets/), explore/ (+widgets/),
-    filters/, base_detail/, base_preview/, collections/, community/,
-    profile/, shared/placeholder_tab.dart
+    filters/, base_detail/, base_preview/, collections/,
+    shared/placeholder_tab.dart
   data/
-    models/base_layout.dart      # BaseLayout, Creator, Village(+X extension)
+    models/base_layout.dart      # BaseLayout, Creator, Village(+unknown), source metadata
+    models/catalogue_rights.dart # fail-closed per-source redistribution evidence
     models/filters.dart          # ExploreFilters (village is `Village?` now), Freshness, BaseSort
-    repositories/base_repository.dart  # interface + kUseRealCatalog flag + provider
+    repositories/base_repository.dart  # interface + rights-gated production provider
     repositories/queries.dart    # queryBases(): filter + search + sort pipeline
-    sources/sample_base_source.dart    # 86 HV + 18 BB placeholder bases (design content)
-    sources/clash_bases_source.dart    # real catalogue mapper (isolate JSON decode)
+    sources/sample_base_source.dart    # 86 HV + 18 BB test-only placeholder bases
+    sources/clash_bases_source.dart    # cleared-catalogue loader + lossless mapper
 ```
 
 ### Rendering the base previews (critical to understand)
@@ -166,13 +178,15 @@ data change) — never compute them inside build without the cache.
 - **Village switching on Home** also swaps the feed: curated design content
   exists only for Home Village; Builder Base uses derived picks
   (`_builderFeed` best-rated, `_builderRecent` newest). Same layout, BB data.
-- **Favourites/follows**: `Set<String>` in AppState; `CollectionsScreen`
-  renders favourites; Community lists creators with follow state.
-- **Data source switch**: `kUseRealCatalog` in
-  `data/repositories/base_repository.dart` (currently `false` → sample data,
-  so screens match the reference exactly). `true` → 5,162 real bases;
-  rating/copies are then `null` and the UI degrades gracefully (rating row
-  hidden, verified line says community layout, etc.).
+- **Favourites**: a persistent `Set<String>` in AppState, restored before edits
+  from `LocalStore`; writes are serialized and failures roll back optimistically
+  changed state. `CollectionsScreen` renders saved bases and keeps stale IDs
+  visible as removable unavailable entries. There is no follow state.
+- **Production data source**: `repositoryProvider()` always returns
+  `ClashBasesCatalogRepository`. It loads only records whose manifest source has
+  explicit content and preview redistribution clearance. The current cleared
+  count is zero, so Home/Explore show an honest unavailable state. The bundled
+  sample repository is injected explicitly by reference/golden tests only.
 - **Deep links**: real catalogue entries carry official
   `link.clashofclans.com` URLs → `GameActions.openInGame` launches via
   `url_launcher`. Sample bases have `gameLink == null` → an honest fallback
@@ -292,17 +306,17 @@ the approved procedural painter and reference artboards were not modified.
 
 ### 7.1 State, navigation, and data
 - `AppState` owns the shared search controller, memoised Explore results,
-  village/hall invariants, filters, favourites, follows, tab selection, and
-  disposal-safe catalogue loading with retry.
-- `MainShell` retains all five tabs in an `IndexedStack`; every primary and
-  secondary tab uses `TabPage`, route-local `ScaffoldMessenger`, keyboard
-  resizing, safe-area padding, and bottom-nav clearance.
+  village/hall invariants, filters, persistent favourites, three-tab selection,
+  and disposal-safe catalogue loading with retry.
+- `MainShell` retains Home / Explore / Collections in an `IndexedStack`; every
+  tab uses `TabPage`, route-local `ScaffoldMessenger`, keyboard resizing,
+  safe-area padding, and bottom-nav clearance.
 - Home category/View-all handoffs open scoped Explore results without resetting
   shared search. Explore All/Home/Builder, TH/BH, category, sort, badge, and
   filter-draft behavior are covered by end-to-end tests.
-- Sample data remains active (`kUseRealCatalog == false`) and every generated
-  entry is marked `isSample: true`; the 5,162-entry real catalogue switch is
-  retained with nullable stats and official deep links.
+- Production uses the rights-gated catalogue and currently has zero cleared
+  entries. Sample data remains test-only and every generated entry is marked
+  `isSample: true`. The unresolved 5,162-record JSON is not packaged.
 
 ### 7.2 Interactions, accessibility, and responsive behavior
 - All icon controls have descriptive semantics and 44×44 hit targets without
@@ -311,9 +325,10 @@ the approved procedural painter and reference artboards were not modified.
 - Copy/share/open-game actions report success, dismissal, unavailability, or
   the honest sample-link fallback exactly once. Share uses the invoking render
   box origin; copy uses the clipboard.
-- Detail supports nullable real-catalogue stats, provenance, follow/save state,
-  fixed actions, and preview zoom. Filters support draft/reset/apply, a named
-  close control, safe-area footer, and one whole-row verified switch.
+- Detail supports nullable real-catalogue stats, explicit source attribution,
+  save state, fixed actions, and preview zoom. Missing style metadata does not
+  render an empty chip. Filters support draft/reset/apply, a named close control,
+  safe-area footer, and one whole-row verified switch.
 - Default 390×844 geometry is preserved. Narrow widths and large text adapt the
   bottom nav, Explore toolbar, Detail CTA, Filters verified row, and segmented
   controls; segmented controls scroll only when scaled labels cannot fit.
@@ -322,8 +337,8 @@ the approved procedural painter and reference artboards were not modified.
   reference artboard size while remaining scrollable at larger text sizes.
 
 ### 7.3 Verification coverage
-- 13 end-to-end flow tests cover navigation, retained state, search handoff,
-  filters, favourites, follows, fallbacks, copy/share, zoom, retry, and disposal.
+- 14 end-to-end flow tests cover navigation, retained state, search handoff,
+  filters, favourites, fallbacks, copy/share, zoom, retry, and disposal.
 - Dedicated control, Detail, Home, Explore, Filters, secondary-tab, SVG, state,
   and golden tests cover semantics, touch edges, safe areas, and empty/error
   states.
@@ -342,8 +357,9 @@ FLUTTER=/c/flutter-sdk/flutter/bin/flutter.bat
 # 1. Static analysis — must be 0 errors / 0 warnings (deprecation infos OK)
 $FLUTTER analyze --no-fatal-infos
 
-# 2. Tests — 114 green: preview/data/query/SVG/state tests, widget controls,
-#    end-to-end flows, responsive/safe-area cases, and all nine golden captures
+# 2. Tests — 167 green: preview/data/query/SVG/state tests, widget controls,
+#    end-to-end flows, rights-gated catalogue, responsive/safe-area cases,
+#    and all nine golden captures
 $FLUTTER test
 
 # 3. Re-capture Flutter renders for visual comparison
@@ -362,29 +378,32 @@ Visual comparison protocol (do not skip):
    proportions. Fix mismatches in the Flutter code (never by editing the
    reference), then re-run steps 1–3.
 
-### Final verification evidence — 2026-11-25
+### Final verification evidence — 2026-11-26 (Task 4)
 
-- `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings, 113
+- `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings, 110
   infos**. The Flutter 3.50 `material.dart` migration remains intentionally out
   of scope.
-- `flutter test --reporter expanded`: exit 0, **114 tests passed**.
-- `flutter test test/goldens_test.dart --update-goldens`: exit 0; all nine
-  captures regenerated, then the normal full-suite golden comparisons passed.
-- Side-by-side review covered Splash, Onboarding, Home top/full/scrolled,
-  Explore, Filters, Detail, and the standalone BasePreview artifact. RGB
-  normalized MAE for direct reference pairs: Splash 1.768, Onboarding 20.163,
-  Home full 29.532, Home top 28.569, Home scrolled 17.522, Explore 23.949,
-  Filters 10.763, Detail 9.799. The larger Home/Explore/Onboarding values are
-  dominated by the documented artboard/mock/export differences in §6, not
-  unresolved component geometry. Standalone BasePreview references remain
-  invalid direct comparators because of the documented 2× export artifact.
-- `flutter build apk --debug`: exit 0 after Gradle `assembleDebug` (1074.1s).
-  Artifact: `fortiq/build/app/outputs/flutter-apk/app-debug.apk`, **150 MB**,
-  SHA-256 `0498ad774d341db88a77aa9993242cab5ced4a7e3138bba3c980c92a99374ed4`.
-  Gradle reports a non-fatal future-compatibility warning because `share_plus`
-  currently applies the Kotlin Gradle Plugin; the APK builds successfully.
-  ZIP CRC validation passed, and `AndroidManifest.xml`, `classes.dex`,
-  `resources.arsc`, and `lib/arm64-v8a/libflutter.so` are present.
+- `flutter test --reporter expanded`: exit 0, **167 tests passed**, including
+  19 rights-gated catalogue tests and all nine golden comparisons.
+- Direct Task 4 review found and fixed three real-entry edge cases: empty
+  category captions no longer crash Home, source attribution is shown without a
+  fabricated person, and missing style metadata no longer renders an empty chip.
+  Unsupported catalogue schema versions now fail closed.
+- `flutter build apk --debug`: exit 0.
+  Artifact: `fortiq/build/app/outputs/flutter-apk/app-debug.apk`, **195,208,931
+  bytes**, SHA-256
+  `238638e8aabb15a774f1ba67a38815aba41e24faa8be8da9a7a1022b982898a6`.
+- APK ZIP CRC validation passed. `AndroidManifest.xml`, `classes.dex`,
+  `resources.arsc`, and `lib/arm64-v8a/libflutter.so` are present. The package
+  contains `assets/data/catalogue_rights.json` and
+  `assets/data/cleared_catalogue.json`; it does **not** contain
+  `clash_bases_catalog.json`.
+- Connected-device validation: installed successfully on Infinix X6876
+  (`1541831584021235`). Home, Explore, and Collections were exercised through
+  the real accessibility tree. Home/Explore show “Catalogue unavailable” and
+  “No rights-cleared bases are available.” Collections shows its honest empty
+  state. Onboarding remained completed after relaunch; no onboarding screen
+  reappeared. The launch capture showed the branded Fortiq splash.
 
 Android build (after everything is green):
 
@@ -404,29 +423,33 @@ need a future upgrade for Flutter's Built-in Kotlin transition.
 
 ## 9. Remaining product work (outside this completion pass)
 
-1. **Device smoke test** — run the built APK on an Android device/emulator and
-   exercise splash → onboarding → Home → Explore → Filters → Detail → zoom.
-   Widget and golden tests are green, but no on-device runtime smoke test was
-   performed in this environment.
-2. **Launcher icon** — generate Android mipmap assets from `FortiqEmblem`.
-3. **Real catalogue imagery** — connect `imageUrl` to an optional preview-image
-   path while retaining the procedural painter as the fallback.
-4. **Persistence** — favourites, follows, and onboarding completion are
-   intentionally session-only; add `shared_preferences` in a separate pass.
+1. **Real catalogue imagery** — implement the approved cached preview-image
+   widget for rights-cleared entries. Never substitute procedural art for a real
+   entry; show loading/error/retry or explicit unavailability instead.
+2. **Deep-link fallback** — add browser/copy/store recovery when the external
+   game handoff fails, without claiming an import succeeded.
+3. **Taxonomy** — add defensive tags only from explicit source evidence and
+   preserve unknown/unclassified values.
+4. **In-app updater** — implement the approved GitHub Releases design, including
+   patch notes, streamed progress, checksum verification, and installer handoff.
 5. **Onboarding pages 2–3** — replace the documented placeholder copy when
    final product copy is available.
 6. **Notifications** — the current Home action opens an honest placeholder
    sheet; a real notification integration remains future work.
+7. **Rights clearance** — obtain documented content and preview redistribution
+   permission before enabling any upstream catalogue records or publishing a
+   public APK. Current cleared count remains zero.
 
 ---
 
 ## 10. Definition of done
 
-- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 113 retained info-level diagnostics.
-- [x] `flutter test`: all 114 tests pass, including the nine golden comparisons.
-- [x] Goldens re-captured and reviewed side-by-side against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
-- [x] `flutter build apk --debug` produces `build/app/outputs/flutter-apk/app-debug.apk` (150 MB).
-- [x] Automated interaction coverage: five-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, favourites, Detail/back, copy/share feedback, preview zoom/reset, follows, retry, and Open in Game fallback.
+- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 110 retained info-level diagnostics.
+- [x] `flutter test`: all 167 tests pass, including 19 rights-gated catalogue tests and nine golden comparisons.
+- [x] Goldens reviewed against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
+- [x] `flutter build apk --debug` produces a CRC-valid 195,208,931-byte APK with no unresolved catalogue JSON.
+- [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.
+- [x] Connected-device smoke test covered branded launch, persisted onboarding, Home/Explore/Collections, and the honest empty catalogue state.
 - [x] No dead buttons; missing integrations surface explicit fallbacks or placeholder copy.
 
 ## 11. Working agreements

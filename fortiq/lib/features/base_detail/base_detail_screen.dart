@@ -115,7 +115,8 @@ class BaseDetailScreen extends StatelessWidget {
                             _MetaChip(label: base.hallBadge, gold: true),
                             for (final c in base.categories)
                               _MetaChip(label: c),
-                            _MetaChip(label: base.layoutStyle),
+                            if (base.layoutStyle.isNotEmpty)
+                              _MetaChip(label: base.layoutStyle),
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -131,7 +132,14 @@ class BaseDetailScreen extends StatelessWidget {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      base.creator.name,
+                                      base.sourceAttribution
+                                                  ?.trim()
+                                                  .isNotEmpty ==
+                                              true
+                                          ? 'Source: ${base.sourceAttribution}'
+                                          : base.creator.name.trim().isEmpty
+                                              ? 'Source unavailable'
+                                              : base.creator.name,
                                       style: AppTypography.creatorName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,

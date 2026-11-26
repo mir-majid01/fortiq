@@ -14,6 +14,7 @@ import 'package:fortiq/core/storage/local_store.dart';
 import 'package:fortiq/core/widgets/chips.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/base_layout.dart';
+import 'package:fortiq/data/models/catalogue_rights.dart';
 import 'package:fortiq/data/models/filters.dart';
 import 'package:fortiq/data/repositories/base_repository.dart';
 import 'package:fortiq/data/sources/clash_bases_source.dart';
@@ -32,6 +33,8 @@ const _shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
 const _launchChannel = MethodChannel('plugins.flutter.io/url_launcher');
 const _shareUnavailable = 'dev.fluttercommunity.plus/share/unavailable';
 const _catalogueError = 'The base catalogue could not be loaded.';
+const _clearedDetailLink =
+    'https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AHV%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -174,7 +177,7 @@ void main() {
   testWidgets(
       'Home category handoff scopes Explore and preserves shared search',
       (tester) async {
-    final state = AppState();
+    final state = AppState(repository: SampleBaseRepository());
     addTearDown(state.dispose);
     await state.load();
     state.selectHallLevel(17);
@@ -476,7 +479,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final restored = AppState();
+    final restored = AppState(repository: SampleBaseRepository());
     addTearDown(restored.dispose);
     await tester.runAsync(restored.loadPersistedState);
     await tester.runAsync(restored.load);
@@ -489,7 +492,10 @@ void main() {
 
   testWidgets('failed favourite writes preserve state and show an error',
       (tester) async {
-    final state = AppState(store: _FailingFavouriteStore());
+    final state = AppState(
+      repository: SampleBaseRepository(),
+      store: _FailingFavouriteStore(),
+    );
     addTearDown(state.dispose);
     await state.load();
     state.tabIndex = AppTab.explore;
@@ -755,7 +761,7 @@ Future<AppState> _pumpLoadedShell(
   int tabIndex = AppTab.home,
   BaseRepository? repository,
 }) async {
-  final state = AppState(repository: repository);
+  final state = AppState(repository: repository ?? SampleBaseRepository());
   addTearDown(state.dispose);
   await tester.runAsync(() => state.load());
   state.tabIndex = tabIndex;
@@ -783,11 +789,25 @@ Future<void> _pumpShell(WidgetTester tester, AppState state) async {
 }
 
 Future<BaseLayout> _openFirstRealDetail(WidgetTester tester) async {
-  final state = await _pumpLoadedShell(
-    tester,
-    repository: ClashBasesCatalogRepository(),
+  final base = ClashBasesCatalogRepository.fromJson(
+    {
+      'id': 'cleared-detail',
+      'name': 'Cleared Detail',
+      'town_hall': 17,
+      'type': 'War',
+      'link': _clearedDetailLink,
+      'description': 'Rights-cleared detail fixture.',
+      'builder': 'Fixture Source',
+      'tags': const <String>[],
+      'added': '2026-11-20',
+      'image': 'https://example.test/cleared-detail.png',
+    },
+    rightsStatus: CatalogueRightsStatus.cleared,
   );
-  final base = state.featured!;
+  await _pumpLoadedShell(
+    tester,
+    repository: _ClearedDetailRepository(base),
+  );
   expect(base.gameLink, isNotNull);
   await tester.tap(find.byType(FeaturedBaseCard));
   await tester.pumpAndSettle();
@@ -879,6 +899,24 @@ Future<void> _doubleTap(WidgetTester tester, Finder target) async {
   await tester.pump(const Duration(milliseconds: 50));
   await tester.tapAt(center);
   await tester.pumpAndSettle();
+}
+
+class _ClearedDetailRepository extends BaseRepository {
+  _ClearedDetailRepository(this._base);
+
+  final BaseLayout _base;
+
+  @override
+  Future<List<BaseLayout>> loadAll() async => [_base];
+
+  @override
+  String? get featuredId => _base.id;
+
+  @override
+  List<String> get trendingIds => const [];
+
+  @override
+  List<String> get recentIds => [_base.id];
 }
 
 class _FailingThenSampleRepository extends SampleBaseRepository {

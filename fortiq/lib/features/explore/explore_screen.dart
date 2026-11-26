@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart' show MatrixUtils;
 import '../../app/state/app_state.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
+import '../../core/icons/fortiq_emblem.dart';
 import '../../core/icons/fortiq_icons.dart';
 import '../../core/widgets/chips.dart';
 import '../../core/widgets/expanded_tap_area.dart';
@@ -271,8 +272,7 @@ class _ResultToolbar extends StatelessWidget {
                 s.label,
                 style: s == state.sort
                     ? AppTypography.chipUnselected.copyWith(
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.w700)
+                        color: AppColors.gold, fontWeight: FontWeight.w700)
                     : AppTypography.chipUnselected,
               ),
             ),
@@ -409,6 +409,11 @@ class _ResultsGrid extends StatelessWidget {
     final state = StateScope.of(context);
     final results = state.exploreResults;
 
+    if (state.catalogueUnavailable) {
+      return const _CatalogueUnavailable(
+        key: Key('catalogue-unavailable'),
+      );
+    }
     if (results.isEmpty) {
       return _EmptyResults(query: state.query);
     }
@@ -431,6 +436,33 @@ class _ResultsGrid extends StatelessWidget {
         base: results[i],
         onTap: () => Navigator.of(context)
             .push(BaseDetailScreen.route(base: results[i])),
+      ),
+    );
+  }
+}
+
+class _CatalogueUnavailable extends StatelessWidget {
+  const _CatalogueUnavailable({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const FortiqEmblem(width: 46, height: 59),
+            const SizedBox(height: 18),
+            Text('Catalogue unavailable', style: AppTypography.screenTitle),
+            const SizedBox(height: 8),
+            Text(
+              'No rights-cleared bases are available.',
+              style: AppTypography.cardSubtitle.copyWith(height: 1.5),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
