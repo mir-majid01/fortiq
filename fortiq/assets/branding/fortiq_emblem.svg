@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="128" viewBox="0 0 100 128" fill="none">
+  <title>Fortiq emblem</title>
+  <desc>Exact three-path emblem extracted from reference/Splash.dc.html lines 20-23.</desc>
+  <path d="M21.05 24.5V9H31.55V14.5H36.85V3.5H47.35V14.5H52.65V3.5H63.15V14.5H68.45V9H78.95V24.5Z" fill="#E6BF68"/>
+  <path fill-rule="evenodd" d="M5 30H95V93L50 124.5L5 93ZM15.75 40.5H84.25V87.4L50 111.4L15.75 87.4Z" fill="#D6A84F"/>
+  <path d="M21.05 45.8H78.95V84.65L68.45 92V56.5H63.15V95.72L50 104.93L36.85 95.72V56.5H31.55V92L21.05 84.65Z" fill="#E6BF68"/>
+</svg>

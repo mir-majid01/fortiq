@@ -5,26 +5,27 @@
 .pub/
 build/
 coverage/
+fortiq/test/failures/
 *.iml
 *.lock
 !pubspec.lock
 
 # Android
-android/.gradle/
-android/app/build/
-android/build/
-android/local.properties
-android/key.properties
-android/app/*.jks
-android/app/*.keystore
+fortiq/android/.gradle/
+fortiq/android/app/build/
+fortiq/android/build/
+fortiq/android/local.properties
+fortiq/android/key.properties
+fortiq/android/app/*.jks
+fortiq/android/app/*.keystore
 
 # iOS/macOS
-ios/.symlinks/
-ios/Pods/
-ios/build/
-ios/Flutter/ephemeral/
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
+fortiq/ios/.symlinks/
+fortiq/ios/Pods/
+fortiq/ios/build/
+fortiq/ios/Flutter/ephemeral/
+fortiq/ios/Flutter/Generated.xcconfig
+fortiq/ios/Flutter/flutter_export_environment.sh
 *.xcworkspace
 !default.xcworkspace
 
