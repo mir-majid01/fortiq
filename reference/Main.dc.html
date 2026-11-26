@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home</title>
+<script src="./_runtime/react.js"></script>
+<script src="./_runtime/react-dom.js"></script>
+<script src="./_runtime/support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'Inter',system-ui,sans-serif}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:1500px;overflow:hidden;background:#0B0D10;color:#F2F4F7">
+<div style="position:absolute;inset:0;padding:56px 0 0;display:flex;flex-direction:column;gap:22px;box-sizing:border-box">
+
+<div style="padding:0 20px;display:flex;align-items:center;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:8px">
+<svg width="23" height="29" viewBox="0 0 100 128" fill="none" aria-hidden="true"><path d="M21.05 24.5V9H31.55V14.5H36.85V3.5H47.35V14.5H52.65V3.5H63.15V14.5H68.45V9H78.95V24.5Z" fill="#E6BF68"></path><path fill-rule="evenodd" d="M5 30H95V93L50 124.5L5 93ZM15.75 40.5H84.25V87.4L50 111.4L15.75 87.4Z" fill="#D6A84F"></path><path d="M21.05 45.8H78.95V84.65L68.45 92V56.5H63.15V95.72L50 104.93L36.85 95.72V56.5H31.55V92L21.05 84.65Z" fill="#E6BF68"></path></svg>
+<span style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:800;letter-spacing:.2em">FORTIQ</span>
+</div>
+<div style="display:flex;align-items:center;gap:8px">
+<button aria-label="Notifications" style="position:relative;width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:#171C23;color:#F2F4F7;display:flex;align-items:center;justify-content:center">
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10.3 20a1.9 1.9 0 0 0 3.4 0"></path></svg>
+<span style="position:absolute;top:9px;right:10px;width:7px;height:7px;border-radius:50%;background:#D6A84F"></span></button>
+<div style="width:40px;height:40px;border-radius:50%;background:#171C23;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700">C</div>
+</div>
+</div>
+
+<div style="padding:0 20px;display:flex;flex-direction:column;gap:2px">
+<span style="font-size:13px;color:#929BA8">Good evening, Chief</span>
+<span style="font-family:'Manrope',sans-serif;font-size:22px;font-weight:800">Fresh TH 16 layouts today</span>
+</div>
+
+<div style="padding:0 20px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;padding:3px;border-radius:12px;background:#11151A;border:1px solid rgba(255,255,255,.05)">
+<div style="flex:1;height:38px;border-radius:9px;background:#1E2530;border:1px solid rgba(214,168,79,.45);color:#F2F4F7;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">Home Village</div>
+<div style="flex:1;height:38px;border-radius:9px;color:#929BA8;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center">Builder Base</div>
+</div>
+<div style="display:flex;gap:8px;margin:0 -20px;padding:0 20px;overflow:hidden">
+<sc-for list="{{ths}}" as="t" hint-placeholder-count="7">
+<div style="flex:none;height:38px;padding:0 14px;border-radius:10px;background:{{t.bg}};border:1px solid {{t.bd}};color:{{t.fg}};font-size:13px;font-weight:700;display:flex;align-items:center;font-variant-numeric:tabular-nums">{{t.l}}</div>
+</sc-for>
+</div>
+</div>
+
+<div style="padding:0 20px">
+<div style="position:relative;height:300px;border-radius:16px;overflow:hidden;background:#171C23;border:1px solid rgba(255,255,255,.06)">
+<dc-import name="BasePreview" seed="3" hint-size="100%,300px"></dc-import>
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,13,16,.4) 0%,rgba(11,13,16,0) 26%,rgba(11,13,16,.5) 58%,rgba(11,13,16,.94) 100%)"></div>
+<span style="position:absolute;left:12px;top:12px;height:26px;padding:0 10px;border-radius:7px;background:rgba(11,13,16,.8);color:#D6A84F;font-size:12px;font-weight:700;display:flex;align-items:center">TH 17</span>
+<button aria-label="Save base" style="position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:10px;border:0;background:rgba(11,13,16,.8);color:#F2F4F7;display:flex;align-items:center;justify-content:center">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></button>
+<div style="position:absolute;left:14px;right:14px;bottom:14px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#6DAE8B"><span style="width:6px;height:6px;border-radius:50%;background:#6DAE8B"></span>New · 2h ago</span>
+<span style="font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;line-height:1.1">Obsidian Ring</span>
+<span style="font-size:12px;color:#C9CFD8">Anti 3 Star · by Kaiden</span>
+</div>
+<button style="flex:none;height:44px;padding:0 16px;border-radius:12px;border:0;background:#D6A84F;color:#14100A;font-size:14px;font-weight:700">Open in Game</button>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="padding:0 20px;display:flex;align-items:baseline;justify-content:space-between">
+<span style="font-family:'Manrope',sans-serif;font-size:17px;font-weight:700">Categories</span>
+<span style="font-size:13px;color:#D6A84F;font-weight:600">View all</span>
+</div>
+<div style="display:flex;gap:8px;padding-left:20px;overflow:hidden">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+<div style="flex:none;height:48px;padding:0 14px;border-radius:12px;background:#171C23;border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D6A84F" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.d}}"></path></svg>{{c.name}}</div>
+</sc-for>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="padding:0 20px;display:flex;align-items:baseline;justify-content:space-between">
+<span style="font-family:'Manrope',sans-serif;font-size:17px;font-weight:700">Trending</span>
+<div style="display:flex;align-items:center;gap:12px"><div style="display:flex;gap:4px"><span style="width:14px;height:4px;border-radius:2px;background:#D6A84F"></span><span style="width:4px;height:4px;border-radius:2px;background:#2A323D"></span><span style="width:4px;height:4px;border-radius:2px;background:#2A323D"></span></div><span style="font-size:13px;color:#D6A84F;font-weight:600">View all</span></div>
+</div>
+<div style="display:flex;gap:12px;padding-left:20px;overflow:hidden">
+<sc-for list="{{trending}}" as="b" hint-placeholder-count="2">
+<div style="flex:none;width:256px;display:flex;flex-direction:column;gap:10px">
+<div style="position:relative;height:192px;border-radius:14px;overflow:hidden;background:#171C23;border:1px solid rgba(255,255,255,.06)">
+<dc-import name="BasePreview" seed="{{b.seed}}" hint-size="100%,192px"></dc-import>
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,13,16,0) 62%,rgba(11,13,16,.8) 100%)"></div>
+<span style="position:absolute;left:10px;top:10px;height:24px;padding:0 9px;border-radius:7px;background:rgba(11,13,16,.8);font-size:12px;font-weight:700;color:#D6A84F;display:flex;align-items:center">{{b.th}}</span>
+<button aria-label="Favorite" style="position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:10px;border:0;background:rgba(11,13,16,.8);color:{{b.heart}};display:flex;align-items:center;justify-content:center">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="{{b.fill}}" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"></path></svg></button>
+<span style="position:absolute;left:10px;bottom:9px;font-size:11px;font-weight:600;color:#E3E7ED;font-variant-numeric:tabular-nums">{{b.dl}} copies</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:600">{{b.name}}</span><span style="font-size:12px;color:#929BA8">{{b.cat}}</span></div>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="padding:0 20px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<span style="font-family:'Manrope',sans-serif;font-size:17px;font-weight:700">Recently added</span>
+<span style="font-size:13px;color:#D6A84F;font-weight:600">View all</span>
+</div>
+<sc-for list="{{recent}}" as="r" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;gap:12px;padding:8px;border-radius:14px;background:#11151A;border:1px solid rgba(255,255,255,.05)">
+<div style="position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;flex:none">
+<dc-import name="BasePreview" seed="{{r.seed}}" hint-size="72px,72px"></dc-import>
+</div>
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+<span style="font-size:15px;font-weight:600">{{r.name}}</span>
+<span style="font-size:12px;color:#929BA8">{{r.meta}}</span>
+<span style="font-size:11px;color:#6DAE8B;font-weight:600">{{r.time}}</span>
+</div>
+<button aria-label="Open in Game" style="width:40px;height:40px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:#171C23;color:#F2F4F7;display:flex;align-items:center;justify-content:center">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg></button>
+</div>
+</sc-for>
+</div>
+
+</div>
+
+<div style="position:absolute;left:16px;right:16px;top:748px;height:68px;border-radius:20px;background:rgba(23,28,35,.96);border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-around;padding:0 6px;box-sizing:border-box">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="5">
+<div style="display:flex;flex-direction:column;align-items:center;gap:4px;min-width:60px;font-size:11px;font-weight:600;color:{{n.c}}">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{n.d}}"></path></svg>{{n.label}}<span style="width:4px;height:4px;border-radius:50%;background:{{n.bar}}"></span></div>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const nav = [
+      ['Home', 'M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'],
+      ['Explore', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z'],
+      ['Collections', 'M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z'],
+      ['Community', 'M16 20v-1a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v1M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM20 20v-1a3.5 3.5 0 0 0-2.5-3.3M15.5 4.3a3.5 3.5 0 0 1 0 6.4'],
+      ['Profile', 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0']
+    ];
+    const lvl = (n, on) => ({ l: 'TH ' + n, bg: on ? 'rgba(214,168,79,.1)' : '#171C23', bd: on ? '#D6A84F' : 'rgba(255,255,255,.06)', fg: on ? '#D6A84F' : '#F2F4F7' });
+    return {
+      ths: [18, 17, 16, 15, 14, 13, 12, 11].map((n) => lvl(n, n === 16)),
+      cats: [
+        { name: 'War', d: 'M5 19L19 5M14 5h5v5M5 5l14 14' },
+        { name: 'CWL', d: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z' },
+        { name: 'Trophy', d: 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3' },
+        { name: 'Farming', d: 'M12 22V12M12 12c0-4 3-6 7-6 0 4-3 6-7 6zM12 14c0-3-2-5-6-5 0 3 2 5 6 5z' },
+        { name: 'Hybrid', d: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5' },
+        { name: 'Legend', d: 'M3 8l4 4 5-7 5 7 4-4-2 11H5z' }
+      ],
+      trending: [
+        { seed: 5, name: 'Hollow Crown', th: 'TH 16', cat: 'Legend League', dl: '12.4k', heart: '#D6A84F', fill: '#D6A84F' },
+        { seed: 8, name: 'Iron Meridian', th: 'TH 16', cat: 'War · Anti 2 Star', dl: '9.8k', heart: '#F2F4F7', fill: 'none' },
+        { seed: 11, name: 'Ashfall Core', th: 'TH 15', cat: 'Trophy', dl: '7.2k', heart: '#F2F4F7', fill: 'none' }
+      ],
+      recent: [
+        { seed: 14, name: 'Quiet Storm', meta: 'TH 17 · CWL · by Mira.V', time: 'New · 25 min ago' },
+        { seed: 17, name: 'Basalt Gate', meta: 'TH 14 · Farming · by ForgeLab', time: 'New · 1 hour ago' },
+        { seed: 20, name: 'Silent Meridian', meta: 'TH 16 · Trophy · by Kaiden', time: 'Today' }
+      ],
+      nav: nav.map((x, i) => ({ label: x[0], d: x[1], c: i === 0 ? '#D6A84F' : '#929BA8', bar: i === 0 ? '#D6A84F' : 'rgba(0,0,0,0)' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

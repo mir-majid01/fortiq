@@ -1,0 +1,82 @@
+{
+  "artboards": [
+    {
+      "file": "Splash.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Splash"
+    },
+    {
+      "file": "Onboarding.dc.html",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Onboarding 1 of 3"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 1500,
+      "title": "Home (full scroll)"
+    },
+    {
+      "file": "Explore.dc.html",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Explore"
+    },
+    {
+      "file": "Filters.dc.html",
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Filters sheet"
+    },
+    {
+      "file": "Detail.dc.html",
+      "x": 2350,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Base detail"
+    },
+    {
+      "file": "BasePreview.dc.html",
+      "x": 0,
+      "y": 1000,
+      "w": 240,
+      "h": 240,
+      "title": "Base preview component"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "t1",
+      "x": 0,
+      "y": -300,
+      "w": 240,
+      "maxW": 2740,
+      "text": "FORTIQ: base discovery, redesigned",
+      "kind": "title1"
+    },
+    {
+      "id": "s1",
+      "x": 0,
+      "y": -190,
+      "w": 440,
+      "text": "All base layouts, names, creators and numbers are placeholder data. Previews are original illustrated isometric layouts standing in for real base screenshots.",
+      "fill": "orange"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
