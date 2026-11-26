@@ -45,6 +45,7 @@
 ## In-app updater
 
 - [x] Design approved and published.
+- [x] Implementation plan published and queued.
 - [ ] Add release metadata service and semantic/build comparison.
 - [ ] Add detailed update page: current/latest version, date, size, checksum, patch notes.
 - [ ] Add real streamed download progress, speed/ETA, cancel, retry, and checksum verification.
