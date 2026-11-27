@@ -33,9 +33,10 @@ updater, and final release verification. Public APKs must be distributed only
 through GitHub Releases after the rights review passes.
 
 Private remote-testing releases: <https://github.com/mir-majid01/fortiq-test-builds>.
-These are personal debug builds and are not public rights-cleared releases.
-Latest device-test build:
-<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
+These are personal debug builds.
+Latest device-test build (real catalogue enabled):
+<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.2-test6>.
+Previous build: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 
 ### Maintenance update — 2026-11-26
 
@@ -458,6 +459,10 @@ Visual comparison protocol (do not skip):
 - `verify_apk.py` now fails the build if the packaged catalogue is empty, has
   duplicate IDs, or contains a record from an uncleared source, so the original
   “Catalogue unavailable” regression cannot ship again.
+- Private test build 6 was uploaded from CI run 45967950573 and verified through
+  the GitHub Releases API: **170,460,516 bytes**, SHA-256
+  `55c13b79121b1c011dbc6aa16f28620aa0544e6426ca67ddebd35cca228b01df`,
+  <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.2-test6>.
 
 ### Final verification evidence — 2026-11-26 (overnight completion, historical)
 
