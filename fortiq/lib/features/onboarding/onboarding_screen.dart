@@ -26,10 +26,8 @@ class _OnboardingPage {
   final int frontSeed, backSeed;
 }
 
-/// Page 1 is the approved reference screen, verbatim. The reference numbers
-/// the flow "Onboarding 1 of 3" and shows three dots, but only exports page
-/// 1 — pages 2 and 3 below are placeholder copy in the same voice, to be
-/// replaced when those screens are designed.
+/// Page 1 preserves the approved reference. Pages 2–3 use the same layout
+/// with product-accurate copy and clearly labelled sample artwork.
 const List<_OnboardingPage> _pages = [
   _OnboardingPage(
     kicker: 'DISCOVER BASES',
@@ -46,7 +44,7 @@ const List<_OnboardingPage> _pages = [
     kicker: 'STAY CURRENT',
     title: 'Fresh layouts for every meta shift',
     body:
-        'Verified builders publish updates the moment balance changes land, so your defences never fall behind.',
+        'Save the layouts you trust, compare their source details, and keep your own imported bases ready for the next attack.',
     frontSeed: 11,
     frontHall: 'TH 15',
     frontName: 'Ashfall Core',
@@ -57,7 +55,7 @@ const List<_OnboardingPage> _pages = [
     kicker: 'COPY WITH CONFIDENCE',
     title: 'From Fortiq straight into your village',
     body:
-        'Preview the full layout, then open it directly in Clash of Clans with a single tap.',
+        'Import an official layout link with your own preview, then open the unchanged link in Clash of Clans whenever you are ready.',
     frontSeed: 5,
     frontHall: 'TH 16',
     frontName: 'Hollow Crown',
@@ -110,10 +108,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: SafeArea(
         bottom: false,
         child: LayoutBuilder(
-          builder: (context, viewport) =>
-              viewport.maxHeight < _scrollThreshold
-                  ? _scrollingLayout(page, viewport.maxWidth)
-                  : _pinnedLayout(page),
+          builder: (context, viewport) => viewport.maxHeight < _scrollThreshold
+              ? _scrollingLayout(page, viewport.maxWidth)
+              : _pinnedLayout(page),
         ),
       ),
     );

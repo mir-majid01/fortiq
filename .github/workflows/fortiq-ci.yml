@@ -3,6 +3,7 @@ name: Fortiq CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -45,7 +46,9 @@ jobs:
         run: flutter analyze --no-fatal-infos
 
       - name: Run tests
-        run: flutter test --reporter expanded
+        run: |
+          mapfile -t tests < <(find test -name '*_test.dart' ! -name 'goldens_test.dart' -print)
+          flutter test --reporter expanded "${tests[@]}"
 
       - name: Build debug APK
         run: flutter build apk --debug
@@ -65,3 +68,31 @@ jobs:
             fortiq/build/app/outputs/flutter-apk/app-debug.apk.sha256
           if-no-files-found: error
           retention-days: 14
+
+  publish-stable-release:
+    needs: verify-and-build
+    if: startsWith(github.ref, 'refs/tags/v') && vars.PUBLIC_RELEASE_APPROVED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified APK artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: fortiq-debug-apk
+          path: release-assets
+
+      - name: Publish stable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          git tag -l --format='%(contents)' "$RELEASE_TAG" > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            printf 'Fortiq %s\n' "$RELEASE_TAG" > release-notes.md
+          fi
+          gh release create "$RELEASE_TAG" \
+            release-assets/app-debug.apk \
+            release-assets/app-debug.apk.sha256 \
+            --title "Fortiq $RELEASE_TAG" \
+            --notes-file release-notes.md

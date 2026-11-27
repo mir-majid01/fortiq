@@ -17,7 +17,6 @@ import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/models/catalogue_rights.dart';
 import 'package:fortiq/data/models/filters.dart';
 import 'package:fortiq/data/repositories/base_repository.dart';
-import 'package:fortiq/data/sources/clash_bases_source.dart';
 import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/base_detail/base_detail_screen.dart';
 import 'package:fortiq/features/base_detail/expanded_base_preview.dart';
@@ -469,6 +468,32 @@ void main() {
     expect(tester.widget<HeartButton>(heart).favorited, isFalse);
   });
 
+  testWidgets('Collections card heart removes a saved base directly',
+      (tester) async {
+    final state = await _pumpLoadedShell(tester, tabIndex: AppTab.explore);
+    await tester.tap(
+      find.descendant(
+        of: _exploreCard('obsidian-ring'),
+        matching: find.byType(HeartButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapTab(tester, 'Collections');
+
+    final card = find.byKey(const ValueKey('collections-base-obsidian-ring'));
+    final heart = find.descendant(of: card, matching: find.byType(HeartButton));
+    expect(heart, findsOneWidget);
+    await tester.tap(heart);
+    await tester.pumpAndSettle();
+
+    expect(state.isFavorite('obsidian-ring'), isFalse);
+    expect(card, findsNothing);
+    expect(
+      find.text('Tap the heart on any base to save it here for later.'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('saved favourites restore into a new AppState', (tester) async {
     await _pumpLoadedShell(tester, tabIndex: AppTab.explore);
     await tester.tap(
@@ -760,10 +785,12 @@ Future<AppState> _pumpLoadedShell(
   WidgetTester tester, {
   int tabIndex = AppTab.home,
   BaseRepository? repository,
+  int? hallLevel,
 }) async {
   final state = AppState(repository: repository ?? SampleBaseRepository());
   addTearDown(state.dispose);
   await tester.runAsync(() => state.load());
+  if (hallLevel != null) state.selectHallLevel(hallLevel);
   state.tabIndex = tabIndex;
   await _pumpShell(tester, state);
   return state;
@@ -789,24 +816,27 @@ Future<void> _pumpShell(WidgetTester tester, AppState state) async {
 }
 
 Future<BaseLayout> _openFirstRealDetail(WidgetTester tester) async {
-  final base = ClashBasesCatalogRepository.fromJson(
-    {
-      'id': 'cleared-detail',
-      'name': 'Cleared Detail',
-      'town_hall': 17,
-      'type': 'War',
-      'link': _clearedDetailLink,
-      'description': 'Rights-cleared detail fixture.',
-      'builder': 'Fixture Source',
-      'tags': const <String>[],
-      'added': '2026-11-20',
-      'image': 'https://example.test/cleared-detail.png',
-    },
+  const base = BaseLayout(
+    id: 'cleared-detail',
+    name: 'Cleared Detail',
+    village: Village.home,
+    hallLevel: 17,
+    categories: ['War'],
+    layoutStyle: '',
+    previewSeed: 0,
+    creator: Creator(name: ''),
+    isSample: false,
+    gameLink: _clearedDetailLink,
+    description: 'Rights-cleared detail fixture.',
+    sourceId: 'fixture',
+    sourceAttribution: 'Fixture Source',
+    sourceUrl: _clearedDetailLink,
     rightsStatus: CatalogueRightsStatus.cleared,
   );
   await _pumpLoadedShell(
     tester,
     repository: _ClearedDetailRepository(base),
+    hallLevel: 17,
   );
   expect(base.gameLink, isNotNull);
   await tester.tap(find.byType(FeaturedBaseCard));

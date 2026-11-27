@@ -7,6 +7,7 @@ import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
 import '../../data/models/base_layout.dart';
 import '../icons/fortiq_icons.dart';
+import 'buttons.dart';
 
 /// Integrations around the official Clash of Clans layout deep link
 /// (`https://link.clashofclans.com/...`).
@@ -31,10 +32,7 @@ abstract final class GameActions {
       launched = false;
     }
     if (!launched && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        _snack(
-            'Could not open Clash of Clans — the game may not be installed.'),
-      );
+      _showLaunchRecovery(context, base);
     }
   }
 
@@ -77,6 +75,82 @@ abstract final class GameActions {
   }
 
   static SnackBar _snack(String message) => SnackBar(content: Text(message));
+
+  static Future<void> _showLaunchRecovery(
+    BuildContext context,
+    BaseLayout base,
+  ) {
+    final link = base.gameLink!;
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      barrierColor: AppColors.scrim.withValues(alpha: 0.86),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Could not open Clash of Clans',
+                  style: AppTypography.filtersTitle),
+              const SizedBox(height: 8),
+              Text(
+                'The game may not be installed. You can open the official layout link in a browser, copy it, or get the game from Supercell.',
+                style: AppTypography.verifiedLine.copyWith(height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: PrimaryButton(
+                  label: 'Open in browser',
+                  onTap: () async {
+                    Navigator.of(sheetContext).pop();
+                    await launchUrl(
+                      Uri.parse(link),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: link));
+                    if (sheetContext.mounted) {
+                      Navigator.of(sheetContext).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          _snack('Base link copied to clipboard'));
+                    }
+                  },
+                  child: const Text('Copy link'),
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () async {
+                    Navigator.of(sheetContext).pop();
+                    await launchUrl(
+                      Uri.parse('https://supercell.com/en/games/clashofclans/'),
+                      mode: LaunchMode.externalApplication,
+                    );
+                  },
+                  child: const Text('Get Clash of Clans'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   static Future<void> _showLinkFallback(BuildContext context, BaseLayout base) {
     return showModalBottomSheet<void>(

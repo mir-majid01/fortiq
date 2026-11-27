@@ -7,7 +7,7 @@ import '../../../core/widgets/buttons.dart';
 import '../../../core/widgets/game_actions.dart';
 import '../../../core/widgets/state_scope.dart';
 import '../../../data/models/base_layout.dart';
-import '../../base_preview/base_preview.dart';
+import '../../base_preview/layout_preview.dart';
 
 /// The 300px featured card: full-bleed preview, reference gradient scrim,
 /// TH badge, save button, freshness line, title, creator, "Open in Game".
@@ -38,7 +38,7 @@ class FeaturedBaseCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             child: Stack(
               children: [
-                Positioned.fill(child: BasePreview(seed: base.previewSeed)),
+                Positioned.fill(child: LayoutPreview(base: base)),
                 const Positioned.fill(
                   child: PreviewScrim(
                     colors: [

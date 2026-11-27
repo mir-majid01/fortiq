@@ -10,9 +10,10 @@ import '../../core/widgets/chips.dart';
 import '../../core/widgets/tab_page.dart';
 import '../../core/widgets/game_actions.dart';
 import '../../core/widgets/section_header.dart';
+import '../updates/update_screen.dart';
 import '../../core/widgets/state_scope.dart';
 import '../../data/models/base_layout.dart';
-import '../../features/base_preview/base_preview.dart';
+import '../../features/base_preview/layout_preview.dart';
 import '../base_detail/base_detail_screen.dart';
 import '../shared/placeholder_tab.dart';
 import 'widgets/featured_base_card.dart';
@@ -26,6 +27,11 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = StateScope.of(context);
+    if (state.isLoading) {
+      return const TabPage(
+        child: CatalogueLoading(key: Key('catalogue-loading')),
+      );
+    }
     if (state.catalogueUnavailable) {
       return const PlaceholderTab(
         key: Key('catalogue-unavailable'),
@@ -59,6 +65,7 @@ class _HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = StateScope.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -68,11 +75,11 @@ class _HomeHeader extends StatelessWidget {
           Text('FORTIQ', style: AppTypography.brand(15)),
           const Spacer(),
           Semantics(
-            key: const Key('home-notifications'),
+            key: const Key('home-updates'),
             container: true,
             excludeSemantics: true,
             button: true,
-            label: 'Notifications, all caught up',
+            label: 'App updates',
             child: SizedBox(
               width: 44,
               height: 44,
@@ -82,16 +89,46 @@ class _HomeHeader extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: () => showNotificationsSheet(context),
+                    onTap: () {
+                      state.updateController.initialize();
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => UpdateScreen(
+                            controller: state.updateController,
+                          ),
+                        ),
+                      );
+                    },
                     child: SizedBox(
                       width: 40,
                       height: 40,
-                      child: Center(
-                        child: FortiqIcon(
-                          FortiqIcons.bell,
-                          size: 19,
-                          color: AppColors.textPrimary,
-                        ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          FortiqIcon(
+                            FortiqIcons.update,
+                            size: 19,
+                            color: AppColors.textPrimary,
+                          ),
+                          Positioned(
+                            top: 7,
+                            right: 7,
+                            child: AnimatedBuilder(
+                              animation: state.updateController,
+                              builder: (context, _) =>
+                                  state.updateController.hasUpdate
+                                      ? Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(
+                                            color: AppColors.gold,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        )
+                                      : const SizedBox.shrink(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -459,7 +496,7 @@ class _RecentItem extends StatelessWidget {
                       child: SizedBox(
                         width: 72,
                         height: 72,
-                        child: BasePreview(seed: base.previewSeed),
+                        child: LayoutPreview(base: base),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -522,16 +559,11 @@ class _RecentItem extends StatelessWidget {
                                     color: AppColors.borderStrong,
                                   ),
                                 ),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(10),
-                                  onTap: () =>
-                                      GameActions.openInGame(context, base),
-                                  child: const Center(
-                                    child: FortiqIcon(
-                                      FortiqIcons.external,
-                                      size: 17,
-                                      color: AppColors.textPrimary,
-                                    ),
+                                child: const Center(
+                                  child: FortiqIcon(
+                                    FortiqIcons.external,
+                                    size: 17,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ),

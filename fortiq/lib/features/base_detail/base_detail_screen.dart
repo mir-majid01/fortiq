@@ -10,7 +10,7 @@ import '../../core/widgets/creator_avatar.dart';
 import '../../core/widgets/game_actions.dart';
 import '../../core/widgets/state_scope.dart';
 import '../../data/models/base_layout.dart';
-import '../base_preview/base_preview.dart';
+import '../base_preview/layout_preview.dart';
 import 'expanded_base_preview.dart';
 
 /// Base detail — full-bleed 470px preview with top/bottom scrims, floating
@@ -73,8 +73,7 @@ class BaseDetailScreen extends StatelessWidget {
                     height: 470,
                     child: Stack(
                       children: [
-                        Positioned.fill(
-                            child: BasePreview(seed: base.previewSeed)),
+                        Positioned.fill(child: LayoutPreview(base: base)),
                         const Positioned.fill(
                           child: PreviewScrim(
                             colors: [
@@ -298,6 +297,7 @@ class BaseDetailScreen extends StatelessWidget {
     Navigator.of(context).push(ExpandedBasePreview.route(
       seed: base.previewSeed,
       title: base.name,
+      base: base,
     ));
   }
 }

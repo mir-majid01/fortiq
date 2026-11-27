@@ -6,21 +6,33 @@ import '../../app/theme/app_typography.dart';
 import '../../core/icons/fortiq_icons.dart';
 import '../../core/widgets/buttons.dart';
 import '../base_preview/base_preview.dart';
+import '../base_preview/layout_preview.dart';
+import '../../data/models/base_layout.dart';
 
 /// Full-screen, pinch-zoomable base preview opened from Base Detail.
 class ExpandedBasePreview extends StatefulWidget {
-  const ExpandedBasePreview({super.key, required this.seed, this.title});
+  const ExpandedBasePreview({
+    super.key,
+    required this.seed,
+    this.title,
+    this.base,
+  });
 
   final int seed;
   final String? title;
+  final BaseLayout? base;
 
-  static Route<void> route({required int seed, String? title}) =>
+  static Route<void> route({
+    required int seed,
+    String? title,
+    BaseLayout? base,
+  }) =>
       PageRouteBuilder(
         opaque: false,
         transitionDuration: const Duration(milliseconds: 220),
         pageBuilder: (_, animation, __) => FadeTransition(
           opacity: animation,
-          child: ExpandedBasePreview(seed: seed, title: title),
+          child: ExpandedBasePreview(seed: seed, title: title, base: base),
         ),
       );
 
@@ -127,7 +139,9 @@ class _ExpandedBasePreviewState extends State<ExpandedBasePreview>
                     aspectRatio: 1.0,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: BasePreview(seed: widget.seed),
+                      child: widget.base == null
+                          ? BasePreview(seed: widget.seed)
+                          : LayoutPreview(base: widget.base!),
                     ),
                   ),
                 ),

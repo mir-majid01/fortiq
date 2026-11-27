@@ -64,6 +64,7 @@ class BaseLayout {
     required this.creator,
     required this.isSample,
     this.imageUrl,
+    this.localImagePath,
     this.rating,
     this.copies,
     this.updatedLabel,
@@ -97,6 +98,7 @@ class BaseLayout {
   final String layoutStyle;
   final int previewSeed;
   final String? imageUrl;
+  final String? localImagePath;
   final Creator creator;
 
   final double? rating;

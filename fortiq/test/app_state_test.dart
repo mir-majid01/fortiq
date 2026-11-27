@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/tabs.dart';
 import 'package:fortiq/data/models/base_layout.dart';
+import 'package:fortiq/data/models/catalogue_rights.dart';
 import 'package:fortiq/data/repositories/base_repository.dart';
 import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -101,6 +102,24 @@ void main() {
     expect(state.baseById(null), isNull);
     expect(state.baseById('missing'), isNull);
     expect(state.baseById(first.id), same(first));
+  });
+
+  test('Home feed follows the selected hall for real catalogue entries',
+      () async {
+    final state = await _loadedState([
+      _realHomeBase('home-16-old', 16, DateTime.utc(2026, 1, 1)),
+      _realHomeBase('home-16-new', 16, DateTime.utc(2026, 1, 3)),
+      _realHomeBase('home-17-new', 17, DateTime.utc(2026, 1, 4)),
+    ]);
+
+    expect(state.featured?.id, 'home-16-new');
+    expect(state.recent.map((base) => base.id), ['home-16-new', 'home-16-old']);
+    expect(state.trending.map((base) => base.id), ['home-16-old']);
+
+    state.selectHallLevel(17);
+    expect(state.featured?.id, 'home-17-new');
+    expect(state.recent.map((base) => base.id), ['home-17-new']);
+    expect(state.trending, isEmpty);
   });
 
   test('Builder feed orders by rating then copies without reordering bases',
@@ -283,6 +302,22 @@ void main() {
     expect(state.trending, isNot(same(failedTrending)));
     expect(state.recent, isNot(same(failedRecent)));
   });
+}
+
+BaseLayout _realHomeBase(String id, int hallLevel, DateTime addedAt) {
+  return BaseLayout(
+    id: id,
+    name: id,
+    village: Village.home,
+    hallLevel: hallLevel,
+    categories: const ['War'],
+    layoutStyle: '',
+    previewSeed: 0,
+    creator: const Creator(name: ''),
+    isSample: false,
+    addedAt: addedAt,
+    rightsStatus: CatalogueRightsStatus.cleared,
+  );
 }
 
 BaseLayout _builderBase(

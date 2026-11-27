@@ -203,24 +203,16 @@ class ClashBasesCatalogRepository implements BaseRepository {
       _ => Village.unknown,
     };
     final hallLevel = village == Village.home ? payload?.townHall : null;
+    final categories = _categories(type, tags, descriptionText);
+    final layoutStyle = _layoutStyle(tags, descriptionText);
 
     return BaseLayout(
       id: id,
       name: name,
       village: village,
       hallLevel: hallLevel,
-      categories: [
-        if (switch (type) {
-          'War' => 'War',
-          'Farm' => 'Farming',
-          'Trophy' => 'Trophy',
-          'Hybrid' => 'Hybrid',
-          _ => null,
-        }
-            case final category?)
-          category,
-      ],
-      layoutStyle: '',
+      categories: categories,
+      layoutStyle: layoutStyle,
       previewSeed: 0,
       imageUrl: image,
       creator: const Creator(name: ''),
@@ -238,6 +230,65 @@ class ClashBasesCatalogRepository implements BaseRepository {
       rightsStatus: rightsStatus,
       isSample: false,
     );
+  }
+
+  static List<String> _categories(
+    String type,
+    List<String> tags,
+    String? description,
+  ) {
+    final primary = switch (type) {
+      'War' => 'War',
+      'Farm' => 'Farming',
+      'Trophy' => 'Trophy',
+      'Hybrid' => 'Hybrid',
+      _ => null,
+    };
+    final result = <String>[if (primary != null) primary];
+    final evidence = '${tags.join(' ')} ${description ?? ''}'.toLowerCase();
+    const secondary = <String, List<String>>{
+      'Anti 2 Star': ['anti-2-star', 'anti 2 star', 'anti-two-star'],
+      'Anti 3 Star': ['anti-3-star', 'anti 3 star', 'anti-three-star'],
+      'CWL': ['cwl', 'clan war league'],
+      'Legend League': ['legend league', 'legend-league'],
+      'Ranked': ['ranked'],
+    };
+    for (final entry in secondary.entries) {
+      if (_matchesEvidence(evidence, entry.value) &&
+          !result.contains(entry.key)) {
+        result.add(entry.key);
+      }
+    }
+    return List.unmodifiable(result);
+  }
+
+  static String _layoutStyle(List<String> tags, String? description) {
+    final evidence = '${tags.join(' ')} ${description ?? ''}'.toLowerCase();
+    const styles = <String, List<String>>{
+      'Box': ['box'],
+      'Diamond': ['diamond'],
+      'Ring': ['ring'],
+      'Island': ['island'],
+      'Symmetrical': ['symmetrical', 'symmetric'],
+      'Asymmetrical': ['asymmetrical', 'asymmetric'],
+    };
+    for (final entry in styles.entries) {
+      if (_matchesEvidence(evidence, entry.value)) return entry.key;
+    }
+    return '';
+  }
+
+  static bool _matchesEvidence(String evidence, List<String> phrases) {
+    final normalized = evidence.replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
+    final padded = ' $normalized ';
+    for (final phrase in phrases) {
+      final candidate =
+          phrase.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
+      if (candidate.isNotEmpty && padded.contains(' $candidate ')) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static _OpenLayoutPayload? _openLayoutPayload(String link) {

@@ -16,6 +16,8 @@ import '../../data/models/base_layout.dart';
 import '../../data/models/filters.dart';
 import '../base_detail/base_detail_screen.dart';
 import '../filters/filters_sheet.dart';
+import '../import/import_base_sheet.dart';
+import '../shared/placeholder_tab.dart';
 import 'widgets/explore_base_card.dart';
 import 'widgets/search_suggestions.dart';
 
@@ -31,6 +33,16 @@ class ExploreScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: AppColors.scrim.withValues(alpha: 0.86),
       builder: (_) => const FiltersSheet(),
+    );
+  }
+
+  void _openImport(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: AppColors.scrim.withValues(alpha: 0.86),
+      builder: (_) => const ImportBaseSheet(),
     );
   }
 
@@ -54,7 +66,9 @@ class ExploreScreen extends StatelessWidget {
           const SizedBox(height: 9),
           _ResultToolbar(onFilters: () => _openFilters(context)),
           const SizedBox(height: 12),
-          const Expanded(child: _ResultsGrid()),
+          Expanded(
+            child: _ResultsGrid(onImport: () => _openImport(context)),
+          ),
         ],
       ),
     );
@@ -402,16 +416,22 @@ class _ResultToolbar extends StatelessWidget {
 }
 
 class _ResultsGrid extends StatelessWidget {
-  const _ResultsGrid();
+  const _ResultsGrid({required this.onImport});
+
+  final VoidCallback onImport;
 
   @override
   Widget build(BuildContext context) {
     final state = StateScope.of(context);
     final results = state.exploreResults;
 
+    if (state.isLoading) {
+      return const CatalogueLoading(key: Key('catalogue-loading'));
+    }
     if (state.catalogueUnavailable) {
-      return const _CatalogueUnavailable(
-        key: Key('catalogue-unavailable'),
+      return _CatalogueUnavailable(
+        key: const Key('catalogue-unavailable'),
+        onImport: onImport,
       );
     }
     if (results.isEmpty) {
@@ -442,7 +462,9 @@ class _ResultsGrid extends StatelessWidget {
 }
 
 class _CatalogueUnavailable extends StatelessWidget {
-  const _CatalogueUnavailable({super.key});
+  const _CatalogueUnavailable({super.key, required this.onImport});
+
+  final VoidCallback onImport;
 
   @override
   Widget build(BuildContext context) {
@@ -460,6 +482,11 @@ class _CatalogueUnavailable extends StatelessWidget {
               'No rights-cleared bases are available.',
               style: AppTypography.cardSubtitle.copyWith(height: 1.5),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 18),
+            TextButton(
+              onPressed: onImport,
+              child: const Text('Import a base'),
             ),
           ],
         ),

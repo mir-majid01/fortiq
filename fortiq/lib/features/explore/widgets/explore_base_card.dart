@@ -6,7 +6,7 @@ import '../../../core/icons/fortiq_icons.dart';
 import '../../../core/widgets/badges.dart';
 import '../../../core/widgets/state_scope.dart';
 import '../../../data/models/base_layout.dart';
-import '../../base_preview/base_preview.dart';
+import '../../base_preview/layout_preview.dart';
 
 /// Explore grid card: 166px preview (h scaled by grid), TH badge, heart,
 /// name + category, star rating.
@@ -38,7 +38,7 @@ class ExploreBaseCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    BasePreview(seed: base.previewSeed),
+                    LayoutPreview(base: base),
                     Positioned(
                       left: 8,
                       top: 8,

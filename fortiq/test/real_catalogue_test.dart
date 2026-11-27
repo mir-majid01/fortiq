@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +12,15 @@ import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/models/catalogue_rights.dart';
 import 'package:fortiq/data/models/filters.dart';
 import 'package:fortiq/data/repositories/base_repository.dart';
+import 'package:fortiq/data/repositories/composite_base_repository.dart';
+import 'package:fortiq/data/repositories/imported_base_store.dart';
 import 'package:fortiq/data/repositories/queries.dart';
 import 'package:fortiq/data/sources/clash_bases_source.dart';
 import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/explore/explore_screen.dart';
 import 'package:fortiq/features/home/home_screen.dart';
 import 'package:fortiq/features/home/widgets/featured_base_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 const _homeLink =
     'https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AHV%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA';
@@ -89,6 +93,8 @@ ClashBasesCatalogRepository _repository(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() => SharedPreferences.setMockInitialValues({}));
 
   test('mapper preserves the source name and forwards URLs unchanged', () {
     final record = _record(
@@ -195,6 +201,41 @@ void main() {
     }
   });
 
+  test('secondary taxonomy comes only from explicit source evidence', () {
+    final tagged = ClashBasesCatalogRepository.fromJson(_record(
+      id: 'tagged-taxonomy',
+      name: 'Neutral Name',
+      link: _homeLink,
+      image: 'https://example.test/tagged-taxonomy.png',
+      tags: const ['anti-2-star', 'CWL', 'ring'],
+      description: 'Ranked Legend League showcase.',
+    ));
+    expect(tagged.categories,
+        ['War', 'Anti 2 Star', 'CWL', 'Legend League', 'Ranked']);
+    expect(tagged.layoutStyle, 'Ring');
+    expect(tagged.sourceTags, ['anti-2-star', 'CWL', 'ring']);
+
+    final nameOnly = ClashBasesCatalogRepository.fromJson(_record(
+      id: 'name-only',
+      name: 'Anti 3 Star CWL Legend Ring',
+      link: _homeLink,
+      image: 'https://example.test/name-only.png',
+    ));
+    expect(nameOnly.categories, ['War']);
+    expect(nameOnly.layoutStyle, isEmpty);
+
+    final incidental = ClashBasesCatalogRepository.fromJson(_record(
+      id: 'incidental-taxonomy',
+      name: 'Neutral Name',
+      link: _homeLink,
+      image: 'https://example.test/incidental-taxonomy.png',
+      tags: const ['sandbox', 'bring'],
+      description: 'An unranked storyline.',
+    ));
+    expect(incidental.categories, ['War']);
+    expect(incidental.layoutStyle, isEmpty);
+  });
+
   test('mapper does not fabricate ratings copies verification or layout style',
       () {
     final base = ClashBasesCatalogRepository.fromJson(_record(
@@ -217,8 +258,10 @@ void main() {
       () async {
     final repository = repositoryProvider();
 
-    expect(repository, isA<ClashBasesCatalogRepository>());
+    expect(repository, isA<CompositeBaseRepository>());
     expect(repository, isNot(isA<SampleBaseRepository>()));
+    expect((repository as CompositeBaseRepository).remote,
+        isA<ClashBasesCatalogRepository>());
     expect(await repository.loadAll(), isEmpty);
     expect(repository.isCatalogueUnavailable, isTrue);
   });
@@ -523,7 +566,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(tester.takeException(), isNull);
     expect(find.byType(FeaturedBaseCard), findsOneWidget);
@@ -532,7 +575,12 @@ void main() {
 
   testWidgets('production empty catalogue shows an honest unavailable state',
       (tester) async {
-    final state = AppState();
+    final state = AppState(
+      repository: CompositeBaseRepository(
+        remote: ClashBasesCatalogRepository(),
+        imports: ImportedBaseStore(directory: Directory.systemTemp),
+      ),
+    );
     addTearDown(state.dispose);
     await tester.runAsync(state.load);
 

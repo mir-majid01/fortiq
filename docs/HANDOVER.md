@@ -60,8 +60,19 @@ Latest device-test build:
 - Final Task 4 verification: `flutter analyze --no-fatal-infos` exited 0 with
   0 errors/0 warnings; `flutter test --reporter expanded` passed 167 tests,
   including 19 rights-gated catalogue tests and all nine golden comparisons.
-- The updater design is approved and published in `docs/updater-design.md` on
-  the public repository; implementation is queued.
+- The updater design is approved and published on the public repository.
+- Overnight completion added real cached/local previews, compact error states,
+  official-link recovery, evidence-based taxonomy, hall-scoped Home feeds,
+  direct Collections unsave, loading feedback, and lawful user-owned imports.
+- Production now uses `CompositeBaseRepository`: rights-cleared remote records
+  plus private user imports. The unresolved upstream catalogue remains disabled.
+- The GitHub Releases updater is implemented with stable-release parsing,
+  semantic/build comparison, HTTPS host allowlists, real streamed progress,
+  cancellation, byte-count/SHA-256 verification, cache reuse, installer handoff,
+  and a detailed dark/gold update page. It never claims installation completed.
+- CI builds and verifies APKs on Linux; platform-sensitive goldens remain a
+  Windows-only gate. Tagged stable publication is gated by the repository
+  variable `PUBLIC_RELEASE_APPROVED=true` after rights review.
 
 ---
 
@@ -100,8 +111,10 @@ exit while retaining the required zero-error/zero-warning gate.
 
 Dependency-light by design: **no state-management or routing packages**.
 Runtime dependencies are `flutter_native_splash`, `share_plus`,
-`shared_preferences`, and `url_launcher`; dev dependencies include
-`flutter_lints` and `image`. Fonts are bundled TTFs (no google_fonts).
+`shared_preferences`, `url_launcher`, `cached_network_image`, `image_picker`,
+`path_provider`, `dio`, `package_info_plus`, `crypto`, `install_plugin`, and
+`flutter_markdown`; dev dependencies include `flutter_lints` and `image`.
+Fonts are bundled TTFs (no google_fonts).
 
 ```
 fortiq/lib/
@@ -136,10 +149,16 @@ fortiq/lib/
     models/base_layout.dart      # BaseLayout, Creator, Village(+unknown), source metadata
     models/catalogue_rights.dart # fail-closed per-source redistribution evidence
     models/filters.dart          # ExploreFilters (village is `Village?` now), Freshness, BaseSort
-    repositories/base_repository.dart  # interface + rights-gated production provider
+    repositories/base_repository.dart  # interface + composite production provider
+    repositories/composite_base_repository.dart # cleared remote + private imports
+    repositories/imported_base_store.dart # versioned user-owned metadata/previews
     repositories/queries.dart    # queryBases(): filter + search + sort pipeline
     sources/sample_base_source.dart    # 86 HV + 18 BB test-only placeholder bases
     sources/clash_bases_source.dart    # cleared-catalogue loader + lossless mapper
+    sources/open_layout_link.dart      # strict official OpenLayout parser
+  features/
+    import/import_base_sheet.dart       # user-owned link + preview import
+    updates/                           # release service, downloader, controller, UI
 ```
 
 ### Rendering the base previews (critical to understand)
@@ -179,16 +198,20 @@ data change) — never compute them inside build without the cache.
   the Explore tab. **Home no longer touches search.**
 - **Village switching on Home** also swaps the feed: curated design content
   exists only for Home Village; Builder Base uses derived picks
-  (`_builderFeed` best-rated, `_builderRecent` newest). Same layout, BB data.
+  (`_builderFeed` best-rated, `_builderRecent` newest). Real Home entries are
+  derived from the selected hall and ordered by recency; sample/golden curation
+  remains unchanged.
 - **Favourites**: a persistent `Set<String>` in AppState, restored before edits
   from `LocalStore`; writes are serialized and failures roll back optimistically
   changed state. `CollectionsScreen` renders saved bases and keeps stale IDs
   visible as removable unavailable entries. There is no follow state.
-- **Production data source**: `repositoryProvider()` always returns
-  `ClashBasesCatalogRepository`. It loads only records whose manifest source has
-  explicit content and preview redistribution clearance. The current cleared
-  count is zero, so Home/Explore show an honest unavailable state. The bundled
-  sample repository is injected explicitly by reference/golden tests only.
+- **Production data source**: `repositoryProvider()` returns
+  `CompositeBaseRepository`. Its remote side loads only records whose manifest
+  source has explicit content and preview redistribution clearance; its local
+  side stores user-initiated official-link imports with user-owned previews in
+  app-private storage. The current third-party cleared count is zero. The
+  bundled sample repository is injected explicitly by reference/golden tests
+  only.
 - **Deep links**: real catalogue entries carry official
   `link.clashofclans.com` URLs → `GameActions.openInGame` launches via
   `url_launcher`. Sample bases have `gameLink == null` → an honest fallback
@@ -359,7 +382,7 @@ FLUTTER=/c/flutter-sdk/flutter/bin/flutter.bat
 # 1. Static analysis — must be 0 errors / 0 warnings (deprecation infos OK)
 $FLUTTER analyze --no-fatal-infos
 
-# 2. Tests — 167 green: preview/data/query/SVG/state tests, widget controls,
+# 2. Tests — 238 green: preview/data/query/SVG/state tests, widget controls,
 #    end-to-end flows, rights-gated catalogue, responsive/safe-area cases,
 #    and all nine golden captures
 $FLUTTER test
@@ -380,7 +403,20 @@ Visual comparison protocol (do not skip):
    proportions. Fix mismatches in the Flutter code (never by editing the
    reference), then re-run steps 1–3.
 
-### Final verification evidence — 2026-11-26 (Task 4)
+### Final verification evidence — 2026-11-26 (overnight completion)
+
+- `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings, 133
+  infos**. The Flutter 3.50 `material.dart` migration remains intentionally out
+  of scope.
+- `flutter test --reporter expanded`: exit 0, **238 tests passed**, including
+  all nine Windows golden comparisons.
+- Review and regression fixes covered compact real-preview errors, stale
+  updater cache invalidation when checksum metadata changes, build-number
+  parsing from stable tag metadata, Home selected-hall scoping, direct
+  Collections unsave, catalogue loading feedback, and incidental-substring
+  taxonomy rejection.
+
+### Final verification evidence — 2026-11-26 (Task 4, historical)
 
 - `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings, 110
   infos**. The Flutter 3.50 `material.dart` migration remains intentionally out
@@ -426,31 +462,32 @@ need a future upgrade for Flutter's Built-in Kotlin transition.
 
 ---
 
-## 9. Remaining product work (outside this completion pass)
+## 9. Remaining product work and boundaries
 
-1. **Real catalogue imagery** — implement the approved cached preview-image
-   widget for rights-cleared entries. Never substitute procedural art for a real
-   entry; show loading/error/retry or explicit unavailability instead.
-2. **Deep-link fallback** — add browser/copy/store recovery when the external
-   game handoff fails, without claiming an import succeeded.
-3. **Taxonomy** — add defensive tags only from explicit source evidence and
-   preserve unknown/unclassified values.
-4. **In-app updater** — implement the approved GitHub Releases design, including
-   patch notes, streamed progress, checksum verification, and installer handoff.
-5. **Onboarding pages 2–3** — replace the documented placeholder copy when
-   final product copy is available.
-6. **Notifications** — the current Home action opens an honest placeholder
-   sheet; a real notification integration remains future work.
-7. **Rights clearance** — obtain documented content and preview redistribution
+1. **Rights clearance** — obtain documented content and preview redistribution
    permission before enabling any upstream catalogue records or publishing a
-   public APK. Current cleared count remains zero.
+   public APK. Current third-party cleared count remains zero; lawful user-owned
+   imports are available now.
+2. **Connected-device verification** — install the new CI artifact and exercise
+   import, real preview display, filters, Collections, updater states, and
+   relaunch persistence on the user's Infinix device. Mobile Use currently
+   reports zero live Canvas surfaces and zero broker records, so no raw-ADB
+   substitute was used.
+3. **Public release** — after rights approval, set repository variable
+   `PUBLIC_RELEASE_APPROVED=true` and push a stable `v*` tag. CI publishes
+   `app-debug.apk`, `app-debug.apk.sha256`, and tag notes only when that gate is
+   enabled.
+4. **Notifications** — a real notification integration remains future work;
+   the Home action now opens the implemented Updates page.
+5. **Onboarding pages 2–3** — placeholder design copy was replaced with honest
+   product behavior; final marketing copy can be refined later.
 
 ---
 
 ## 10. Definition of done
 
-- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 110 retained info-level diagnostics.
-- [x] `flutter test`: all 167 tests pass, including 19 rights-gated catalogue tests and nine golden comparisons.
+- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 133 retained info-level diagnostics.
+- [x] `flutter test`: all 238 tests pass, including rights/import/updater coverage and nine golden comparisons.
 - [x] Goldens reviewed against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
 - [x] `flutter build apk --debug` produces a CRC-valid 195,208,931-byte APK with no unresolved catalogue JSON.
 - [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.

@@ -11,8 +11,7 @@ const _shareChannel = MethodChannel('dev.fluttercommunity.plus/share');
 const _launchChannel = MethodChannel('plugins.flutter.io/url_launcher');
 const _invokerKey = Key('game-action-invoker');
 const _unavailableResult = 'dev.fluttercommunity.plus/share/unavailable';
-const _launchError =
-    'Could not open Clash of Clans — the game may not be installed.';
+const _launchError = 'Could not open Clash of Clans';
 const _shareError = 'Sharing is unavailable on this device.';
 
 const _gameLink = 'https://link.clashofclans.com/en?id=fortiq-layout';
@@ -219,9 +218,52 @@ void main() {
       expect(find.byType(SnackBar), findsNothing);
     });
 
+    testWidgets('failed launch can open the unchanged link in a browser',
+        (tester) async {
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(_launchChannel, (call) async {
+        calls.add(call);
+        return calls.length > 1;
+      });
+      final context = await _pumpInvoker(tester);
+
+      await GameActions.openInGame(context, _linkedBase);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in browser'));
+      await tester.pumpAndSettle();
+
+      expect(calls, hasLength(2));
+      final arguments = Map<String, dynamic>.from(calls.last.arguments as Map);
+      expect(arguments['url'], _gameLink);
+      expect(arguments['useWebView'], isFalse);
+    });
+
+    testWidgets('failed launch can copy the unchanged link', (tester) async {
+      String? clipboardText;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(_launchChannel, (call) async => false);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+        if (call.method == 'Clipboard.setData') {
+          clipboardText = (call.arguments as Map)['text'] as String?;
+        }
+        return null;
+      });
+      final context = await _pumpInvoker(tester);
+
+      await GameActions.openInGame(context, _linkedBase);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Copy link'));
+      await tester.pumpAndSettle();
+
+      expect(clipboardText, _gameLink);
+      expect(find.text('Base link copied to clipboard'), findsOneWidget);
+    });
+
     for (final throws in [false, true]) {
       testWidgets(
-          'launch that ${throws ? 'throws' : 'returns false'} shows the existing error',
+          'launch that ${throws ? 'throws' : 'returns false'} offers recovery actions',
           (tester) async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(_launchChannel, (call) async {
@@ -236,6 +278,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text(_launchError), findsOneWidget);
+        expect(find.text('Open in browser'), findsOneWidget);
+        expect(find.text('Copy link'), findsOneWidget);
+        expect(find.text('Get Clash of Clans'), findsOneWidget);
+        expect(find.byType(SnackBar), findsNothing);
       });
 
       testWidgets(

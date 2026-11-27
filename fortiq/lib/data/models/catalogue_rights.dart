@@ -4,7 +4,8 @@ enum CatalogueRightsStatus {
   cleared,
   unresolved,
   denied,
-  sample;
+  sample,
+  userOwned;
 
   String get wireValue => name;
 
@@ -15,6 +16,7 @@ enum CatalogueRightsStatus {
       'unresolved' => unresolved,
       'denied' => denied,
       'sample' => sample,
+      'userOwned' => userOwned,
       _ => throw FormatException('Unknown catalogue rights status: $value'),
     };
   }

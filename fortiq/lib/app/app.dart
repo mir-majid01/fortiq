@@ -54,6 +54,7 @@ class _FortiqAppState extends State<FortiqApp> {
       },
     );
     _state.load();
+    unawaited(_state.updateController.initialize());
   }
 
   @override

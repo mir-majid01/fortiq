@@ -25,6 +25,7 @@ abstract final class AppColors {
 
   // Semantic
   static const Color success = Color(0xFF6DAE8B);
+  static const Color error = Color(0xFFE36B6B);
 
   // Borders — rgba(255,255,255,x)
   static const Color border = Color(0x0FFFFFFF); // .06

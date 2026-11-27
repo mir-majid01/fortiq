@@ -8,7 +8,7 @@ import '../../core/widgets/state_scope.dart';
 import '../../core/widgets/tab_page.dart';
 import '../../data/models/base_layout.dart';
 import '../base_detail/base_detail_screen.dart';
-import '../base_preview/base_preview.dart';
+import '../base_preview/layout_preview.dart';
 import '../shared/placeholder_tab.dart';
 
 /// Collections — saved (favourited) bases. Real content: every heart tapped
@@ -92,7 +92,7 @@ class _SavedBaseCard extends StatelessWidget {
                   child: SizedBox(
                     width: 72,
                     height: 72,
-                    child: BasePreview(seed: base.previewSeed),
+                    child: LayoutPreview(base: base),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -114,6 +114,10 @@ class _SavedBaseCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                HeartButton(
+                  favorited: true,
+                  onTap: () => StateScope.toggleFavorite(context, base.id),
                 ),
               ],
             ),

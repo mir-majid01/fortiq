@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show TextEditingValue, TextSelection;
 import 'package:flutter/widgets.dart' show FocusManager, TextEditingController;
@@ -6,7 +8,10 @@ import '../../core/storage/local_store.dart';
 import '../../data/models/base_layout.dart';
 import '../../data/models/filters.dart';
 import '../../data/repositories/base_repository.dart';
+import '../../data/repositories/composite_base_repository.dart';
 import '../../data/repositories/queries.dart';
+import '../../features/updates/controllers/update_controller.dart';
+import '../../features/updates/services/update_service.dart';
 import '../tabs.dart';
 
 /// Session state for the whole app: loaded data, navigation tab, persisted
@@ -25,10 +30,15 @@ class AppState extends ChangeNotifier {
   bool _persistedStateLoaded = false;
   Future<void>? _persistedStateRestoration;
   Future<void> _favouriteWriteQueue = Future<void>.value();
+  UpdateController? _updateController;
+
+  UpdateController get updateController =>
+      _updateController ??= UpdateController(updateService: UpdateService());
 
   @override
   void dispose() {
     _disposed = true;
+    _updateController?.dispose();
     searchController.dispose();
     super.dispose();
   }
@@ -38,6 +48,9 @@ class AppState extends ChangeNotifier {
   bool _loaded = false;
   String? _loadError;
   Map<String, BaseLayout> _baseIndex = const {};
+  List<BaseLayout>? _homeFeedCache;
+  List<BaseLayout>? _homeTrendingCache;
+  List<BaseLayout>? _homeRecentSelectionCache;
   List<BaseLayout>? _builderFeedCache;
   List<BaseLayout>? _builderRecentCache;
   List<BaseLayout>? _builderTrendingCache;
@@ -60,6 +73,9 @@ class AppState extends ChangeNotifier {
       index.putIfAbsent(base.id, () => base);
     }
     _baseIndex = Map.unmodifiable(index);
+    _homeFeedCache = null;
+    _homeTrendingCache = null;
+    _homeRecentSelectionCache = null;
     _builderFeedCache = null;
     _builderRecentCache = null;
     _builderTrendingCache = null;
@@ -90,6 +106,45 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  Future<BaseLayout> importBase({
+    required String link,
+    required String name,
+    String? attribution,
+    String? description,
+    required File preview,
+  }) async {
+    final repository = this.repository;
+    if (repository is! CompositeBaseRepository) {
+      throw UnsupportedError('This repository does not support imports.');
+    }
+    final base = await repository.importBase(
+      link: link,
+      name: name,
+      attribution: attribution,
+      description: description,
+      preview: preview,
+    );
+    if (_disposed) return base;
+    _bases = await repository.loadAll();
+    _loaded = true;
+    _loadError = null;
+    _invalidateCatalogueCaches();
+    _invalidateResults();
+    notifyListeners();
+    return base;
+  }
+
+  Future<void> deleteImportedBase(String id) async {
+    final repository = this.repository;
+    if (repository is! CompositeBaseRepository) return;
+    await repository.deleteImportedBase(id);
+    if (_disposed) return;
+    _bases = await repository.loadAll();
+    _invalidateCatalogueCaches();
+    _invalidateResults();
+    notifyListeners();
   }
 
   // ---- Flow ---------------------------------------------------------------
@@ -175,18 +230,27 @@ class AppState extends ChangeNotifier {
     if (_village == v) return;
     _village = v;
     _hallLevel = v.maxHall;
+    _homeFeedCache = null;
+    _homeTrendingCache = null;
+    _homeRecentSelectionCache = null;
     notifyListeners();
   }
 
   void selectHallLevel(int level) {
     if (_hallLevel == level) return;
     _hallLevel = level;
+    _homeFeedCache = null;
+    _homeTrendingCache = null;
+    _homeRecentSelectionCache = null;
     notifyListeners();
   }
 
-  String get greetingTitle => catalogueUnavailable
-      ? 'Catalogue unavailable'
-      : 'Fresh ${_village.hallPrefix} $_hallLevel layouts today';
+  String get greetingTitle {
+    if (isLoading) return 'Loading layouts…';
+    if (loadError != null || catalogueUnavailable)
+      return 'Catalogue unavailable';
+    return 'Fresh ${_village.hallPrefix} $_hallLevel layouts today';
+  }
 
   /// Opens Explore scoped to the Home selection — the chosen village and hall
   /// level, narrowed to [category] when a category pill was tapped.
@@ -311,6 +375,28 @@ class AppState extends ChangeNotifier {
   }
 
   // ---- Home feed -----------------------------------------------------------
+  bool get _useCuratedHomePicks =>
+      baseById(repository.featuredId)?.isSample ?? false;
+
+  List<BaseLayout> get _homeFeed {
+    final cached = _homeFeedCache;
+    if (cached != null) return cached;
+    final feed = [
+      ..._bases.where(
+        (base) => base.village == Village.home && base.hallLevel == _hallLevel,
+      ),
+    ]..sort((a, b) {
+        final at = a.updatedAt ?? a.addedAt;
+        final bt = b.updatedAt ?? b.addedAt;
+        if (at == null && bt == null) return a.id.compareTo(b.id);
+        if (at == null) return 1;
+        if (bt == null) return -1;
+        final byDate = bt.compareTo(at);
+        return byDate != 0 ? byDate : a.id.compareTo(b.id);
+      });
+    return _homeFeedCache = List.unmodifiable(feed);
+  }
+
   /// The curated design picks cover the Home Village. For the Builder Base,
   /// picks are derived from the dataset: best rated, then most copied.
   List<BaseLayout> get _builderFeed {
@@ -342,7 +428,9 @@ class AppState extends ChangeNotifier {
       final feed = _builderFeed;
       return feed.isEmpty ? null : feed.first;
     }
-    return baseById(repository.featuredId);
+    if (_useCuratedHomePicks) return baseById(repository.featuredId);
+    final feed = _homeFeed;
+    return feed.isEmpty ? null : feed.first;
   }
 
   List<BaseLayout> get trending {
@@ -351,10 +439,13 @@ class AppState extends ChangeNotifier {
         _builderFeed.skip(1).take(3),
       );
     }
-    return [
-      for (final id in repository.trendingIds)
-        if (baseById(id) case final base?) base,
-    ];
+    if (_useCuratedHomePicks) {
+      return [
+        for (final id in repository.trendingIds)
+          if (baseById(id) case final base?) base,
+      ];
+    }
+    return _homeTrendingCache ??= List.unmodifiable(_homeFeed.skip(1).take(3));
   }
 
   List<BaseLayout> get recent {
@@ -362,10 +453,13 @@ class AppState extends ChangeNotifier {
       return _builderRecentSelectionCache ??=
           List.unmodifiable(_builderRecent.take(3));
     }
-    return [
-      for (final id in repository.recentIds)
-        if (baseById(id) case final base?) base,
-    ];
+    if (_useCuratedHomePicks) {
+      return [
+        for (final id in repository.recentIds)
+          if (baseById(id) case final base?) base,
+      ];
+    }
+    return _homeRecentSelectionCache ??= List.unmodifiable(_homeFeed.take(3));
   }
 
   // ---- Favourites ----------------------------------------------------------

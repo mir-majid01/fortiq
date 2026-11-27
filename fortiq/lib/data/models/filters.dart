@@ -9,6 +9,7 @@ const List<String> baseCategories = [
   'Trophy',
   'Farming',
   'Hybrid',
+  'Anti 2 Star',
   'Anti 3 Star',
   'Legend League',
   'Ranked',
@@ -68,6 +69,7 @@ class ExploreFilters {
     _village = value;
     hallLevels = {};
   }
+
   Set<int> hallLevels;
   Set<String> categories;
   Set<String> styles;

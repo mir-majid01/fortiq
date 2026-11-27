@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -9,8 +10,11 @@ import 'package:fortiq/app/theme/app_theme.dart';
 import 'package:fortiq/core/widgets/chips.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/base_layout.dart';
+import 'package:fortiq/data/repositories/base_repository.dart';
 import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/home/home_screen.dart';
+import 'package:fortiq/features/home/widgets/featured_base_card.dart';
+import 'package:fortiq/features/updates/update_screen.dart';
 
 void main() {
   setUpAll(() async {
@@ -37,7 +41,43 @@ void main() {
     }
   });
 
-  testWidgets('Home header keeps notifications and has no profile affordance',
+  testWidgets('Home shows a loading state until the catalogue is ready',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.reset);
+    final response = Completer<List<BaseLayout>>();
+    final state = AppState(repository: _PendingHomeRepository(response.future));
+    addTearDown(state.dispose);
+
+    await tester.pumpWidget(
+      StateScope(
+        state: state,
+        child: MaterialApp(
+          theme: buildFortiqTheme(),
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+    final loading = state.load();
+    await tester.pump();
+
+    expect(find.byKey(const Key('catalogue-loading')), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Loading bases…'), findsOneWidget);
+    expect(state.greetingTitle, 'Loading layouts…');
+
+    await tester.runAsync(() async {
+      response.complete(await SampleBaseRepository().loadAll());
+    });
+    await loading;
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('catalogue-loading')), findsNothing);
+    expect(find.byType(FeaturedBaseCard), findsOneWidget);
+  });
+
+  testWidgets('Home header opens updates and has no profile affordance',
       (tester) async {
     final semantics = tester.ensureSemantics();
     tester.view.devicePixelRatio = 1;
@@ -58,15 +98,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final notifications = find.byKey(const Key('home-notifications'));
-    expect(tester.getSemantics(notifications).label,
-        'Notifications, all caught up');
-    expect(tester.getSize(notifications).width, greaterThanOrEqualTo(44));
-    expect(tester.getSize(notifications).height, greaterThanOrEqualTo(44));
-    await tester.tap(notifications);
+    final updates = find.byKey(const Key('home-updates'));
+    expect(tester.getSemantics(updates).label, 'App updates');
+    expect(tester.getSize(updates).width, greaterThanOrEqualTo(44));
+    expect(tester.getSize(updates).height, greaterThanOrEqualTo(44));
+    await tester.tap(updates);
     await tester.pumpAndSettle();
-    expect(find.text("You're all caught up"), findsOneWidget);
-    Navigator.of(tester.element(find.text("You're all caught up"))).pop();
+    expect(find.byType(UpdateScreen), findsOneWidget);
+    Navigator.of(tester.element(find.byType(UpdateScreen))).pop();
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('home-profile')), findsNothing);
@@ -258,6 +297,24 @@ void main() {
         findsOneWidget);
     semantics.dispose();
   });
+}
+
+class _PendingHomeRepository extends BaseRepository {
+  _PendingHomeRepository(this._response);
+
+  final Future<List<BaseLayout>> _response;
+
+  @override
+  Future<List<BaseLayout>> loadAll() => _response;
+
+  @override
+  String? get featuredId => null;
+
+  @override
+  List<String> get trendingIds => const [];
+
+  @override
+  List<String> get recentIds => const [];
 }
 
 Future<AppState> _pumpHome(WidgetTester tester) async {

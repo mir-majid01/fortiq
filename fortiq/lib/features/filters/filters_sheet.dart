@@ -32,11 +32,6 @@ class _FiltersSheetState extends State<FiltersSheet> {
 
   ExploreFilters get _d => _draft!;
 
-  static const List<String> _categories = baseCategories;
-  static const List<String> _styles = [
-    'Box', 'Diamond', 'Ring', 'Island', 'Symmetrical', 'Asymmetrical',
-  ];
-
   void _toggleSet(Set<String> set, String v) =>
       setState(() => set.contains(v) ? set.remove(v) : set.add(v));
 
@@ -47,9 +42,35 @@ class _FiltersSheetState extends State<FiltersSheet> {
     final isHome = village == Village.home;
     final maxHall = village.maxHall;
     final hallCount = isHome ? 6 : 5;
-    final halls = [
-      for (var l = maxHall; l > maxHall - hallCount && l > 0; l--) l
+    final sourceHalls = state.bases
+        .where((base) => base.village == village && base.hallLevel != null)
+        .map((base) => base.hallLevel!)
+        .toSet();
+    final halls = sourceHalls.isEmpty
+        ? [for (var l = maxHall; l > maxHall - hallCount && l > 0; l--) l]
+        : sourceHalls.toList()
+      ..sort((a, b) => b.compareTo(a));
+    final sourceCategories =
+        state.bases.expand((base) => base.categories).toSet();
+    final categories = [
+      ...baseCategories.where(sourceCategories.contains),
+      ...sourceCategories.where((value) => !baseCategories.contains(value)),
     ];
+    final sourceStyles = state.bases
+        .map((base) => base.layoutStyle)
+        .where((value) => value.isNotEmpty)
+        .toSet();
+    final styles = sourceStyles.isEmpty
+        ? const [
+            'Box',
+            'Diamond',
+            'Ring',
+            'Island',
+            'Symmetrical',
+            'Asymmetrical'
+          ]
+        : sourceStyles.toList()
+      ..sort();
 
     return Container(
       // Reference: sheet starts 64px below the status-bar top.
@@ -102,7 +123,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
                     ),
                   ),
                   _Group(
-                    label: 'TOWN HALL',
+                    label: isHome ? 'TOWN HALL' : 'BUILDER HALL',
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -127,7 +148,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final c in _categories)
+                        for (final c in categories)
                           PillChip(
                             label: c,
                             selected: _d.categories.contains(c),
@@ -142,7 +163,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final s in _styles)
+                        for (final s in styles)
                           PillChip(
                             label: s,
                             selected: _d.styles.contains(s),
@@ -154,8 +175,7 @@ class _FiltersSheetState extends State<FiltersSheet> {
                   _Group(
                     label: 'FRESHNESS',
                     child: SegmentedToggle(
-                      options:
-                          Freshness.values.map((f) => f.label).toList(),
+                      options: Freshness.values.map((f) => f.label).toList(),
                       selected: _d.freshness.index,
                       onSelect: (i) =>
                           setState(() => _d.freshness = Freshness.values[i]),
@@ -165,11 +185,11 @@ class _FiltersSheetState extends State<FiltersSheet> {
                       showContainerBorder: false,
                     ),
                   ),
-                  _VerifiedRow(
-                    value: _d.verifiedOnly,
-                    onChanged: (v) =>
-                        setState(() => _d.verifiedOnly = v),
-                  ),
+                  if (state.bases.any((base) => base.creator.verified))
+                    _VerifiedRow(
+                      value: _d.verifiedOnly,
+                      onChanged: (v) => setState(() => _d.verifiedOnly = v),
+                    ),
                 ],
               ),
             ),
@@ -258,7 +278,8 @@ class _VerifiedRow extends StatelessWidget {
         ),
         child: Row(
           children: [
-            FortiqIcon(FortiqIcons.shieldCheck, size: 18, color: AppColors.success),
+            FortiqIcon(FortiqIcons.shieldCheck,
+                size: 18, color: AppColors.success),
             const SizedBox(width: 10),
             Expanded(
               child: Text(

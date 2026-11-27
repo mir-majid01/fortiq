@@ -37,6 +37,10 @@ abstract final class FortiqIcons {
   static const List<String> check = ['M5 12l5 5L20 7'];
   static const List<String> close = ['M6 6l12 12M18 6L6 18'];
   static const List<String> plus = ['M12 5v14M5 12h14'];
+  static const List<String> update = [
+    'M20 11a8 8 0 1 0-2.3 5.7',
+    'M20 4v7h-7',
+  ];
 
   /// Star — reference renders it filled (no stroke).
   static const List<String> starFilled = [

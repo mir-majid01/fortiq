@@ -5,7 +5,7 @@ import '../../../app/theme/app_typography.dart';
 import '../../../core/widgets/badges.dart';
 import '../../../core/widgets/state_scope.dart';
 import '../../../data/models/base_layout.dart';
-import '../../base_preview/base_preview.dart';
+import '../../base_preview/layout_preview.dart';
 
 /// Trending carousel card: 256×192 preview, bottom scrim, TH badge, heart,
 /// "12.4k copies" line, then name + category caption.
@@ -38,7 +38,7 @@ class TrendingCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(13),
                 child: Stack(
                   children: [
-                    Positioned.fill(child: BasePreview(seed: base.previewSeed)),
+                    Positioned.fill(child: LayoutPreview(base: base)),
                     const Positioned.fill(
                       child: PreviewScrim(
                         colors: [Colors.transparent, AppColors.previewScrim80],

@@ -27,41 +27,53 @@
 
 ## Real previews and game links
 
-- [ ] Add cached remote preview widget with loading/error/retry states.
-- [ ] Never use procedural art as a real-base substitute.
-- [ ] Add release Android `INTERNET` permission.
-- [ ] Pass official Clash share URLs unchanged.
-- [ ] Add browser/copy/store fallback without claiming in-game import success.
-- [ ] Test image loading/cache/errors and URL forwarding.
+- [x] Add cached remote preview widget with loading/error/retry states.
+- [x] Never use procedural art as a real-base substitute.
+- [x] Add release Android `INTERNET` permission.
+- [x] Pass official Clash share URLs unchanged.
+- [x] Add browser/copy/store fallback without claiming in-game import success.
+- [x] Test image loading/cache/errors, compact error layout, and URL forwarding.
 
 ## Taxonomy and Collections
 
-- [ ] Map source categories explicitly and preserve original values.
-- [ ] Keep unknown classifications unclassified.
-- [ ] Add defensive tags only with source evidence/documented process.
-- [ ] Verify real-entry search/filter/sort and empty states.
-- [ ] Verify favourite persistence, duplicates, unfavourite, and missing entries.
+- [x] Map source categories explicitly and preserve original values.
+- [x] Keep unknown classifications unclassified.
+- [x] Add defensive tags only with source evidence/documented process.
+- [x] Verify real-entry search/filter/sort and empty states.
+- [x] Verify favourite persistence, duplicates, unfavourite, and missing entries.
+- [x] Scope real Home feeds to the selected hall and add catalogue loading feedback.
+- [x] Add direct unsave to available Collections cards.
 
 ## In-app updater
 
 - [x] Design approved and published.
 - [x] Implementation plan published and queued.
-- [ ] Add release metadata service and semantic/build comparison.
-- [ ] Add detailed update page: current/latest version, date, size, checksum, patch notes.
-- [ ] Add real streamed download progress, speed/ETA, cancel, retry, and checksum verification.
-- [ ] Add Android package-installer handoff and iOS App Store explanation.
-- [ ] Add offline/rate-limit/no-release/checksum/install error recovery.
-- [ ] Add updater service/widget/navigation tests.
-- [ ] Add tagged GitHub Release workflow for APK + `.sha256` + notes.
+- [x] Add release metadata service and semantic/build comparison.
+- [x] Add detailed update page: current/latest version, date, size, checksum, patch notes.
+- [x] Add real streamed download progress, speed/ETA, cancel, retry, and checksum verification.
+- [x] Add Android package-installer handoff and iOS App Store explanation.
+- [x] Add offline/rate-limit/no-release/checksum/install error recovery.
+- [x] Add updater service/widget/navigation tests.
+- [x] Add tagged GitHub Release workflow for APK + `.sha256` + notes behind the rights-approval variable.
+
+## Lawful user import
+
+- [x] Parse only official HTTPS OpenLayout links and preserve the original URL.
+- [x] Require a user-owned preview and copy it into app-private storage.
+- [x] Persist imported metadata with a versioned local key across relaunch.
+- [x] Merge imports with rights-cleared records and reject duplicate content.
+- [x] Add Explore empty-state import entry and validation/persistence tests.
 
 ## Final verification and delivery
 
-- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings.
-- [x] Full `flutter test`: 167 tests green.
+- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, 133 retained infos.
+- [x] Full `flutter test`: 238 tests green.
 - [x] Golden comparisons pass against the approved sample/reference renders.
-- [x] Build and validate debug APK: CRC clean, 195,208,931 bytes, SHA-256 recorded.
-- [x] Publish private test build 4 and verify its remote size/SHA-256: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
+- [ ] Trigger GitHub CI and validate the new debug APK/checksum.
+- [ ] Publish and verify a new private test release.
+- [x] Historical private test build 4: CRC clean, 195,208,931 bytes, SHA-256 recorded: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 - [x] Device-check branded splash, persisted onboarding, three-tab nav, and honest empty catalogue state on Infinix X6876.
-- [ ] Device-check favourites, links, previews, and updater when their implementations are available.
+- [ ] Device-check favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available.
+- [x] Record current device-tool boundary: Mobile Use inventory and doctor both report zero live Canvas surfaces/broker records; no raw-ADB bypass used.
 - [ ] Publish a public APK only if the rights gate passes.
 - [x] Update `HANDOVER.md` with exact evidence and remaining limitations.

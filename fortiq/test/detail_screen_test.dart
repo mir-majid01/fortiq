@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/theme/app_theme.dart';
+import 'package:fortiq/core/widgets/base_preview_image.dart';
+import 'package:fortiq/core/widgets/buttons.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
 import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/sources/sample_base_source.dart';
@@ -137,6 +139,7 @@ void main() {
       creator: const Creator(name: 'Community Builder'),
       isSample: false,
       gameLink: 'https://link.clashofclans.com/en?id=community-layout',
+      imageUrl: 'https://example.test/community-layout.png',
     );
 
     await tester.pumpWidget(
@@ -148,11 +151,26 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(find.text('|'), findsNothing);
     expect(find.textContaining('Community layout'), findsOneWidget);
     expect(find.textContaining('not independently verified'), findsOneWidget);
+    expect(find.byType(BasePreviewImage), findsOneWidget);
+
+    await tester.tap(find.byWidgetPredicate(
+      (widget) => widget is OverlayIconButton && widget.label == 'Zoom layout',
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(ExpandedBasePreview), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(ExpandedBasePreview),
+        matching: find.byType(BasePreviewImage),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('expanded preview has an accessible zoom-in alternative',

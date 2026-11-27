@@ -1,5 +1,7 @@
 import '../models/base_layout.dart';
 import '../sources/clash_bases_source.dart';
+import 'composite_base_repository.dart';
+import 'imported_base_store.dart';
 
 /// Data access for base layouts. All UI/state reads go through this interface.
 abstract class BaseRepository {
@@ -17,4 +19,7 @@ abstract class BaseRepository {
 
 /// Production always uses the rights-gated catalogue. Sample content is
 /// injected explicitly by reference/golden tests and is never a fallback.
-BaseRepository repositoryProvider() => ClashBasesCatalogRepository();
+BaseRepository repositoryProvider() => CompositeBaseRepository(
+      remote: ClashBasesCatalogRepository(),
+      imports: ImportedBaseStore(),
+    );

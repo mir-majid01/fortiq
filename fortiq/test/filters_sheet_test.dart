@@ -7,6 +7,7 @@ import 'package:fortiq/app/theme/app_theme.dart';
 import 'package:fortiq/core/widgets/buttons.dart';
 import 'package:fortiq/core/widgets/chips.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
+import 'package:fortiq/data/models/base_layout.dart';
 import 'package:fortiq/data/models/filters.dart';
 import 'package:fortiq/data/sources/sample_base_source.dart';
 import 'package:fortiq/features/filters/filters_sheet.dart';
@@ -71,6 +72,32 @@ void main() {
     expect(state.filters.categories, {'War'});
     expect(state.filters.verifiedOnly, isTrue);
     expect(state.filters.activeGroupCount, 3);
+  });
+
+  testWidgets('Builder Base uses Builder Hall labels and keeps All villages',
+      (tester) async {
+    final state = await pumpHost(tester);
+    state.applyFilters(ExploreFilters(village: null));
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final villageToggle = find.byType(SegmentedToggle).first;
+    final toggleRect = tester.getRect(villageToggle);
+    await tester.tapAt(Offset(
+      toggleRect.left + toggleRect.width * 0.75,
+      toggleRect.center.dy,
+    ));
+    await tester.pump();
+
+    expect(find.text('BUILDER HALL'), findsOneWidget);
+    expect(find.text('TOWN HALL'), findsNothing);
+    expect(find.text('BH 10'), findsOneWidget);
+    expect(state.filters.village, isNull,
+        reason: 'sheet edits remain a draft until Show Results');
+
+    await tester.tap(find.text('Show Results'));
+    await tester.pumpAndSettle();
+    expect(state.filters.village, Village.builder);
   });
 
   testWidgets('Reset clears the draft, leaving applied state untouched',
