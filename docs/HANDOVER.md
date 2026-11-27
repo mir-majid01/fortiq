@@ -19,7 +19,7 @@ The three sources of truth, all on disk:
 |---|---|
 | `C:\Users\HP\Desktop\Fortiq\reference\` | The design export: `Splash.dc.html`, `Onboarding.dc.html`, `Main.dc.html` (Home), `Explore.dc.html`, `Filters.dc.html`, `Detail.dc.html`, `BasePreview.dc.html`, `canvas.json` (artboard notes). `_runtime/` is the export tool's JS — **not** part of the design. |
 | `C:\Users\HP\Desktop\Fortiq\fortiq\` | The Flutter app (this is the deliverable). |
-| `C:\Users\HP\Desktop\Fortiq\clash-bases\` | Local upstream export used to build the packaged catalogue. `fortiq/tool/build_catalogue.py` validates and converts its 5,162-record `bases.json` into `fortiq/assets/data/cleared_catalogue.json`. |
+| `C:\Users\HP\Desktop\Fortiq\clash-bases\` | Local upstream export used to build the packaged catalogue. `fortiq/tool/build_catalogue.py` validates and converts its 5,162-record `bases.json` and merges the BaseMelon records from `fortiq/tool/data/basemelon_bases.json` into `fortiq/assets/data/cleared_catalogue.json` (5,345 records). |
 
 Supporting artifacts: `C:\Users\HP\Desktop\Fortiq\shots\ref_*.png` are
 headless-Chrome renders of the reference artboards;
@@ -96,6 +96,70 @@ Previous build: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/
 - Remaining caveat: preview images are third-party hotlinks, so a host can
   still fail or rate-limit. The app keeps its loading/error/retry states and
   the base record, link, and filters continue to work.
+
+### Maintenance update — 2026-11-27 (second pass: TH19, Builder Base, preview speed)
+
+Three defects reported against the live catalogue are fixed and verified.
+
+1. **Town Hall 19 was missing.** The MIT feed stops at TH18.
+   `fortiq/tool/fetch_basemelon.py` collects the TH19 and Builder Hall layouts
+   from the public BaseMelon sitemap (polite, one request per second, cached on
+   disk). The packaged catalogue now ships **5,345 records** (5,162 from
+   `clash-bases` + 183 from BaseMelon), including **32 Town Hall 19 layouts**.
+   BaseMelon is recorded as a second cleared source in
+   `assets/data/catalogue_rights.json` (metadata + official links only,
+   previews hotlinked, project-owner approval retained).
+2. **The Builder Base section showed Home Village bases.** The upstream `WB`
+   OpenLayout marker is a *home-village war base*, but it was mapped to
+   `Village.builder`, so the Builder tab listed 2,097 war bases labelled
+   "BH 4–BH 18". The mapper now reads `HV`/`WB` → Home Village and
+   `BB`/`BB2` → Builder Base, taking the Builder Hall level from the `BB2`
+   payload number. The catalogue now contains **151 real Builder Hall layouts**
+   (BH4=22, BH5=24, BH6=15, BH7=33, BH8=13, BH9=18, BH10=26) and **5,194 Home
+   Village** layouts (TH4–TH19), with 0 unknown-village records.
+   *Known gap:* **Builder Hall 3 has no official share links in any cleared
+   source** — BaseMelon, bases-coc and clashbases.com publish BH3 preview
+   images but no `link.clashofclans.com` OpenLayout URL. Because Fortiq only
+   ships layouts that can be opened in the game, BH3 now shows an explicit
+   "No Builder Hall 3 layouts yet" state instead of another hall's layouts.
+   The Builder feed is strictly scoped to the selected Builder Hall.
+3. **Previews loaded too slowly.** Every record now carries a `thumbnail`
+   rendition: the source host's own smaller file where one exists
+   (`-400w.webp`, `sm_crop.jpg`, `?width=400`, imgur `m.jpg`,
+   `-300x300.webp`), and the public weserv.nl resizer for the hosts that
+   publish one multi-megabyte original and no rendition (47 GitHub PNGs at
+   ~3.5 MB and 20 oneclash `/layout/` previews → ~20 KB each). Grid cards load
+   the rendition, decode it at the painted size (`memCacheWidth`) and skip the
+   fade-in; the detail view still uses the full preview and a failed rendition
+   falls back to it automatically. 5,339 of 5,345 records have a smaller
+   rendition; the 6 archived Shopify previews keep their original URL because
+   that host answers 502 for `_400x400` and 404 for the proxy request.
+
+### Final verification evidence — 2026-11-27 (second pass)
+
+- `python tool/build_catalogue.py --source ..\clash-bases\bases.json --extra
+  tool\data\basemelon_bases.json --out assets\data\cleared_catalogue.json`:
+  wrote **5,345 records** (3,017,843 bytes); 5,194 Home Village, 151 Builder
+  Base, 0 unknown; payload markers 3,079 `HV` / 2,115 `WB` / 151 `BB2`.
+- `python tool/probe_catalogue.py` reproduces the same runtime summary from
+  the packaged asset.
+- `python tool/verify_thumbnails.py --catalogue assets/data/cleared_catalogue.json
+  --per-host 3`: every sampled rendition resolves and is smaller than the full
+  preview (oneclash ~26 KB, BaseMelon ~64 KB, bases-coc ~25 KB, imgur ~18 KB,
+  blueprintcoc ~56 KB, Shopify ~47 KB).
+- All **67** proxy-routed renditions verified live: HTTP 200, average
+  **20.6 KB**, maximum **33.6 KB**.
+- `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings**.
+- `flutter test` (every non-golden suite): exit 0, **246 tests passed**,
+  including the new Builder-Hall scoping, Builder empty-state, thumbnail
+  fallback, and packaged-thumbnail assertions. The nine goldens were
+  re-captured for the TH19 hall strip and pass; a pixel comparison against the
+  previous captures (`tool/compare_goldens.py`) shows the only change is the
+  hall-chip row (y 185–222, x 66–377) — the other seven screens are
+  byte-identical.
+- `verify_apk.py` additionally fails the build if a packaged record has no
+  HTTPS thumbnail or if a multi-megabyte preview is packaged without a
+  lightweight rendition.
 
 ---
 
@@ -363,9 +427,12 @@ the approved procedural painter and reference artboards were not modified.
 - Home category/View-all handoffs open scoped Explore results without resetting
   shared search. Explore All/Home/Builder, TH/BH, category, sort, badge, and
   filter-draft behavior are covered by end-to-end tests.
-- Production uses the packaged real catalogue: 5,162 credited `clash-bases`
-  records are rights-cleared in the manifest and mapped losslessly. Sample data
-  remains test-only and every generated entry is marked `isSample: true`.
+- Production uses the packaged real catalogue: **5,345 credited records**
+  (5,162 from the MIT-licensed `clash-bases` export + 183 from BaseMelon) are
+  rights-cleared in the manifest and mapped losslessly. That is 5,194 Home
+  Village layouts (TH4–TH19) and 151 Builder Base layouts (BH4–BH10); no
+  record resolves to an unknown village. Sample data remains test-only and
+  every generated entry is marked `isSample: true`.
 
 ### 7.2 Interactions, accessibility, and responsive behavior
 - All icon controls have descriptive semantics and 44×44 hit targets without
@@ -563,9 +630,9 @@ Actions owns the reproducible Android build.
 ## 10. Definition of done
 
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; only retained info-level diagnostics.
-- [x] `flutter test`: all 239 non-golden tests pass, including catalogue/rights/import/updater coverage; nine goldens pass with the sample repository.
+- [x] `flutter test`: all 246 non-golden tests pass, including catalogue/rights/import/updater coverage; the nine goldens pass (the Home hall strip was regenerated for TH19 — every other golden is pixel-identical).
 - [x] Goldens reviewed against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
-- [x] Production catalogue ships 5,162 credited real bases; analyzer/tests green on 2026-11-27.
+- [x] Production catalogue ships 5,345 credited real bases (5,194 Home Village TH4–TH19, 151 Builder Base BH4–BH10); analyzer/tests green on 2026-11-27.
 - [x] GitHub Actions builds and verifies the APK, which packages `catalogue_rights.json` and `cleared_catalogue.json` and omits the legacy unresolved JSON.
 - [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.
 - [x] Connected-device smoke test covered branded launch and persisted onboarding on the earlier build; the real-catalogue build still needs a device pass.

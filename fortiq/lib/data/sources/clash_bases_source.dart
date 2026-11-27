@@ -8,9 +8,9 @@ import '../models/catalogue_rights.dart';
 import '../repositories/base_repository.dart';
 
 /// Production catalogue path. Only records whose source has explicit content
-/// and preview redistribution grants are returned. The upstream software MIT
-/// licence is retained in the manifest, but is not treated as permission to
-/// redistribute third-party base designs or previews.
+/// and preview redistribution grants are returned. Records preserve their
+/// official village marker: `HV` and `WB` (war base) are home-village
+/// layouts, while `BB`/`BB2` are Builder Base layouts.
 class ClashBasesCatalogRepository implements BaseRepository {
   ClashBasesCatalogRepository({
     AssetBundle? assetBundle,
@@ -183,6 +183,7 @@ class ClashBasesCatalogRepository implements BaseRepository {
     final builder = json['builder'];
     final description = json['description'];
     final added = json['added'];
+    final thumbnail = json['thumbnail'];
     if (builder != null && builder is! String) {
       throw const FormatException('Catalogue builder is not a string');
     }
@@ -192,17 +193,16 @@ class ClashBasesCatalogRepository implements BaseRepository {
     if (added != null && added is! String) {
       throw const FormatException('Catalogue added value is not a string');
     }
+    if (thumbnail != null && thumbnail is! String) {
+      throw const FormatException('Catalogue thumbnail is not a string');
+    }
     final builderText = builder is String ? builder : null;
     final descriptionText = description is String ? description : null;
     final addedText = added is String ? added : null;
 
     final payload = _openLayoutPayload(link);
-    final village = switch (payload?.village) {
-      'HV' => Village.home,
-      'WB' => Village.builder,
-      _ => Village.unknown,
-    };
-    final hallLevel = village == Village.home ? payload?.townHall : null;
+    final village = payload?.village ?? Village.unknown;
+    final hallLevel = village == Village.unknown ? null : payload?.townHall;
     final categories = _categories(type, tags, descriptionText);
     final layoutStyle = _layoutStyle(tags, descriptionText);
 
@@ -215,6 +215,7 @@ class ClashBasesCatalogRepository implements BaseRepository {
       layoutStyle: layoutStyle,
       previewSeed: 0,
       imageUrl: image,
+      thumbnailUrl: thumbnail is String && thumbnail.isNotEmpty ? thumbnail : null,
       creator: const Creator(name: ''),
       updatedAt: addedText == null ? null : DateTime.tryParse(addedText),
       gameLink: link,
@@ -294,18 +295,30 @@ class ClashBasesCatalogRepository implements BaseRepository {
   static _OpenLayoutPayload? _openLayoutPayload(String link) {
     final id = Uri.tryParse(link)?.queryParameters['id'];
     if (id == null) return null;
-    final match = RegExp(r'^TH(\d+):(HV|WB):[A-Za-z0-9_-]{32}$').firstMatch(id);
+    final match =
+        RegExp(r'^TH(\d+):(HV|WB|BB2|BB):[A-Za-z0-9_-]{32}$').firstMatch(id);
     if (match == null) return null;
     return _OpenLayoutPayload(
       townHall: int.parse(match.group(1)!),
-      village: match.group(2)!,
+      village: _villageForMarker(match.group(2)!),
     );
   }
+
+  /// Maps the official OpenLayout village marker to a Fortiq village.
+  ///
+  /// `HV` is a normal home-village layout, `WB` is a home-village *war* base
+  /// (it is not a Builder Base layout), and `BB`/`BB2` are Builder Base
+  /// layouts whose payload number is the Builder Hall level.
+  static Village _villageForMarker(String marker) => switch (marker) {
+        'HV' || 'WB' => Village.home,
+        'BB' || 'BB2' => Village.builder,
+        _ => Village.unknown,
+      };
 }
 
 class _OpenLayoutPayload {
   const _OpenLayoutPayload({required this.townHall, required this.village});
 
   final int townHall;
-  final String village;
+  final Village village;
 }

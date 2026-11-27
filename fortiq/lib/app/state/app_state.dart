@@ -230,35 +230,54 @@ class AppState extends ChangeNotifier {
     if (_village == v) return;
     _village = v;
     _hallLevel = v.maxHall;
-    _homeFeedCache = null;
-    _homeTrendingCache = null;
-    _homeRecentSelectionCache = null;
+    _invalidateFeedCaches();
     notifyListeners();
   }
 
   void selectHallLevel(int level) {
     if (_hallLevel == level) return;
     _hallLevel = level;
+    _invalidateFeedCaches();
+    notifyListeners();
+  }
+
+  /// Drops every memoised Home/Builder feed so a village or hall change is
+  /// reflected immediately.
+  void _invalidateFeedCaches() {
     _homeFeedCache = null;
     _homeTrendingCache = null;
     _homeRecentSelectionCache = null;
-    notifyListeners();
+    _builderFeedCache = null;
+    _builderRecentCache = null;
+    _builderTrendingCache = null;
+    _builderRecentSelectionCache = null;
   }
 
   String get greetingTitle {
     if (isLoading) return 'Loading layouts…';
     if (loadError != null || catalogueUnavailable)
       return 'Catalogue unavailable';
+    if (builderHallIsEmpty) {
+      return 'No ${_village.hallName} $_hallLevel layouts yet';
+    }
     return 'Fresh ${_village.hallPrefix} $_hallLevel layouts today';
   }
 
+  /// True when the Builder Base is selected but the catalogue carries no
+  /// official layout for that Builder Hall yet.
+  bool get builderHallIsEmpty =>
+      _village == Village.builder && _builderFeed.isEmpty;
+
   /// Opens Explore scoped to the Home selection — the chosen village and hall
   /// level, narrowed to [category] when a category pill was tapped.
-  void openExploreFromHome({String? category}) {
+  ///
+  /// [allHalls] drops the hall filter, which is used by the Builder Hall
+  /// empty state to offer every Builder Base layout instead of an empty list.
+  void openExploreFromHome({String? category, bool allHalls = false}) {
     filters
       ..reset()
       ..village = _village
-      ..hallLevels = {_hallLevel};
+      ..hallLevels = allHalls ? {} : {_hallLevel};
     if (category != null) filters.categories = {category};
     _tabIndex = AppTab.explore;
     _invalidateResults();
@@ -398,12 +417,20 @@ class AppState extends ChangeNotifier {
   }
 
   /// The curated design picks cover the Home Village. For the Builder Base,
-  /// picks are derived from the dataset: best rated, then most copied.
+  /// picks are derived from the dataset: the selected Builder Hall first,
+  /// then best rated and most copied.
+  ///
+  /// The feed is scoped to the selected Builder Hall. Showing another hall's
+  /// layouts would be as wrong as showing Home Village bases here, so an
+  /// unavailable hall yields an empty feed and an explicit empty state.
   List<BaseLayout> get _builderFeed {
     final cached = _builderFeedCache;
     if (cached != null) return cached;
+    final scoped = _bases
+        .where((b) => b.village == Village.builder && b.hallLevel == _hallLevel)
+        .toList();
     final feed = [
-      ..._bases.where((b) => b.village == Village.builder),
+      ...scoped,
     ]..sort((a, b) {
         final byRating = (b.rating ?? -1).compareTo(a.rating ?? -1);
         return byRating != 0
@@ -416,8 +443,11 @@ class AppState extends ChangeNotifier {
   List<BaseLayout> get _builderRecent {
     final cached = _builderRecentCache;
     if (cached != null) return cached;
+    final scoped = _bases
+        .where((b) => b.village == Village.builder && b.hallLevel == _hallLevel)
+        .toList();
     final recent = [
-      ..._bases.where((b) => b.village == Village.builder),
+      ...scoped,
     ]..sort((a, b) =>
         (b.updatedAt ?? DateTime(0)).compareTo(a.updatedAt ?? DateTime(0)));
     return _builderRecentCache = List.unmodifiable(recent);

@@ -96,6 +96,38 @@ void main() {
     expect(find.byType(BasePreviewImage), findsOneWidget);
   });
 
+  testWidgets('a failed thumbnail falls back to the full preview', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: BasePreviewImage(
+            imageUrl: 'https://example.test/full.png',
+            thumbnailUrl: 'https://example.test/thumb.png',
+          ),
+        ),
+      ),
+    );
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.imageUrl, 'https://example.test/thumb.png');
+
+    final context = tester.element(find.byType(CachedNetworkImage));
+    final errorWidget =
+        image.errorWidget!(context, image.imageUrl, Exception());
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: errorWidget)));
+
+    final fallback = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(
+      fallback.imageUrl,
+      'https://example.test/full.png',
+      reason: 'a broken rendition must not leave the card without a preview',
+    );
+  });
+
   testWidgets('failed real preview offers retry without procedural fallback',
       (tester) async {
     var retries = 0;

@@ -50,10 +50,14 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 22),
           const _VillageAndHallSelectors(),
           const SizedBox(height: 19),
-          const _FeaturedSection(),
-          const _CategoriesSection(),
-          const _TrendingSection(),
-          const _RecentSection(),
+          if (state.builderHallIsEmpty)
+            const _BuilderHallEmptyState()
+          else ...[
+            const _FeaturedSection(),
+            const _CategoriesSection(),
+            const _TrendingSection(),
+            const _RecentSection(),
+          ],
         ],
       ),
     );
@@ -274,6 +278,55 @@ class _VillageAndHallSelectors extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown when the Builder Base is selected but the catalogue carries no
+/// official layout for that Builder Hall yet. Another hall's layouts are never
+/// substituted, because a wrong base cannot be copied into the game.
+class _BuilderHallEmptyState extends StatelessWidget {
+  const _BuilderHallEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = StateScope.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        key: const Key('builder-hall-empty'),
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'No ${state.village.hallName} ${state.hallLevel} layouts yet',
+              style: AppTypography.sectionTitle,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'The public catalogues have not published official '
+              '${state.village.hallName} ${state.hallLevel} share links yet. '
+              'Fortiq only ships layouts with an official Supercell link, so '
+              'this hall stays empty instead of showing another hall.',
+              style: AppTypography.cardSubtitle.copyWith(height: 1.5),
+            ),
+            const SizedBox(height: 14),
+            TextButton(
+              onPressed: () => state.openExploreFromHome(allHalls: true),
+              child: Text(
+                'Browse all Builder Base layouts',
+                style: AppTypography.sectionAction.copyWith(fontSize: 14),
+              ),
+            ),
+          ],
         ),
       ),
     );

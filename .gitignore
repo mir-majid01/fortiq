@@ -33,6 +33,8 @@ fortiq/ios/Flutter/flutter_export_environment.sh
 .idea/
 .vscode/
 *.log
+__pycache__/
+*.pyc
 .DS_Store
 Thumbs.db
 

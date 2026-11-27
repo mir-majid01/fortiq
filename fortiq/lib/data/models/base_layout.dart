@@ -30,7 +30,7 @@ extension VillageX on Village {
 
   /// Highest hall level in the current game.
   int get maxHall => switch (this) {
-        Village.home => 18,
+        Village.home => 19,
         Village.builder => 10,
         Village.unknown => 0,
       };
@@ -65,6 +65,7 @@ class BaseLayout {
     required this.isSample,
     this.imageUrl,
     this.localImagePath,
+    this.thumbnailUrl,
     this.rating,
     this.copies,
     this.updatedLabel,
@@ -99,6 +100,11 @@ class BaseLayout {
   final int previewSeed;
   final String? imageUrl;
   final String? localImagePath;
+
+  /// Lightweight variant of [imageUrl] used by grid cards. Catalogue builds
+  /// point this at a smaller server-side rendition so previews download and
+  /// decode noticeably faster than the full-size preview.
+  final String? thumbnailUrl;
   final Creator creator;
 
   final double? rating;

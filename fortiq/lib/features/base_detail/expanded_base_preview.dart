@@ -141,7 +141,7 @@ class _ExpandedBasePreviewState extends State<ExpandedBasePreview>
                       borderRadius: BorderRadius.circular(16),
                       child: widget.base == null
                           ? BasePreview(seed: widget.seed)
-                          : LayoutPreview(base: widget.base!),
+                          : LayoutPreview(base: widget.base!, useFullSize: true),
                     ),
                   ),
                 ),

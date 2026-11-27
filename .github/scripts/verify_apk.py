@@ -16,6 +16,11 @@ REQUIRED_ENTRIES = {
     CATALOGUE_ENTRY,
 }
 FORBIDDEN_SUFFIX = "clash_bases_catalog.json"
+# Hosts that publish one multi-megabyte original and no smaller rendition.
+# Their previews must be requested through the resize proxy, otherwise a grid
+# card downloads the full-size asset.
+HEAVY_IMAGE_HOSTS = ("raw.githubusercontent.com/", "media.oneclash.com/layout/")
+RESIZE_PROXY_HOST = "wsrv.nl"
 
 
 def fail(message: str) -> None:
@@ -57,12 +62,20 @@ def verify_catalogue(rights: dict, catalogue: dict) -> tuple[int, int]:
             fail(f"catalogue record {index} is not an object")
         if base.get("source_id") not in cleared:
             fail(f"catalogue record {index} belongs to an uncleared source")
-        for field in ("id", "link", "image", "name"):
+        for field in ("id", "link", "image", "name", "thumbnail"):
             if not isinstance(base.get(field), str) or not base[field]:
                 fail(f"catalogue record {index} has an invalid {field}")
+        if not base["thumbnail"].startswith("https://"):
+            fail(f"catalogue record {index} thumbnail is not an HTTPS URL")
         if base["id"] in ids:
             fail(f"duplicate catalogue id: {base['id']}")
         ids.add(base["id"])
+        if any(host in base["image"] for host in HEAVY_IMAGE_HOSTS):
+            if RESIZE_PROXY_HOST not in base["thumbnail"]:
+                fail(
+                    f"catalogue record {index} uses a multi-megabyte preview "
+                    "without a lightweight rendition"
+                )
 
     return len(bases), len(cleared)
 
@@ -106,6 +119,7 @@ def main() -> None:
     print(f"sha256={digest.hexdigest()}")
     print(f"catalogue_bases={base_count}")
     print(f"cleared_sources={cleared_count}")
+    print("catalogue_thumbnails=verified")
     print("rights_uncleared_catalogue=absent")
 
 

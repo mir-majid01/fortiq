@@ -24,8 +24,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _homeLink =
     'https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AHV%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA';
-const _builderLink =
+/// `WB` is a home-village *war* base, not a Builder Base layout.
+const _warBaseLink =
     'https://link.clashofclans.com/fi?action=OpenLayout&id=TH17%3AWB%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA';
+/// `BB2` marks a Builder Base layout; the payload number is the Builder Hall.
+const _builderBaseLink =
+    'https://link.clashofclans.com/en?action=OpenLayout&id=TH10%3ABB2%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA';
 const _unknownVillageLink =
     'https://link.clashofclans.com/en?action=OpenLayout&id=TH17%3AXX%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA';
 
@@ -126,19 +130,33 @@ void main() {
     expect(base.rightsStatus, CatalogueRightsStatus.unresolved);
   });
 
-  test('WB payload selects Builder Base without inventing a Builder Hall level',
+  test('WB payload is a home-village war base, not a Builder Base layout', () {
+    final base = ClashBasesCatalogRepository.fromJson(_record(
+      id: 'cleared-war-base',
+      name: 'Cleared War Base',
+      link: _warBaseLink,
+      image: 'https://example.test/cleared-war-base.png',
+      townHall: 17,
+    ));
+
+    expect(base.village, Village.home);
+    expect(base.hallLevel, 17);
+    expect(base.hallBadge, 'TH 17');
+  });
+
+  test('BB2 payload selects Builder Base and supplies the Builder Hall level',
       () {
     final base = ClashBasesCatalogRepository.fromJson(_record(
       id: 'cleared-builder',
       name: 'Cleared Builder',
-      link: _builderLink,
+      link: _builderBaseLink,
       image: 'https://example.test/cleared-builder.png',
-      townHall: 17,
+      townHall: 10,
     ));
 
     expect(base.village, Village.builder);
-    expect(base.hallLevel, isNull);
-    expect(base.hallBadge, 'Builder Base');
+    expect(base.hallLevel, 10);
+    expect(base.hallBadge, 'BH 10');
   });
 
   test('HV payload supplies the Home hall while original town_hall is retained',
@@ -254,8 +272,7 @@ void main() {
     expect(base.creatorHandle, 'Source unavailable');
   });
 
-  test('production uses the packaged real catalogue, never samples', () async {
-    final repository = repositoryProvider();
+  test('production uses the packaged real catalogue, never samples', () async {    final repository = repositoryProvider();
 
     expect(repository, isA<CompositeBaseRepository>());
     expect(repository, isNot(isA<SampleBaseRepository>()));
@@ -265,13 +282,211 @@ void main() {
     final bases = await repository.loadAll();
 
     expect(bases, isNotEmpty);
-    expect(bases.length, greaterThan(1000));
+    expect(bases.length, greaterThan(5000));
     expect(bases.every((base) => !base.isSample), isTrue);
     expect(bases.every((base) => base.gameLink != null), isTrue);
+    expect(
+      bases.where((base) => base.village == Village.home && base.hallLevel == 19),
+      isNotEmpty,
+      reason: 'Town Hall 19 launched on 2026-11-16 and must be selectable',
+    );
+    expect(
+      bases.where((base) => base.village == Village.builder),
+      isNotEmpty,
+      reason: 'Builder Base layouts use the BB2 payload marker',
+    );
+    expect(
+      bases.every((base) => base.thumbnailUrl != null),
+      isTrue,
+      reason: 'cards rely on the lightweight preview rendition',
+    );
     expect(repository.isCatalogueUnavailable, isFalse);
   });
 
-  test('packaged rights evidence clears the attributed source and retains notice',
+  test('the packaged catalogue exposes Town Hall 19 and Builder Halls', () async {
+    final repository = repositoryProvider();
+    final bases = await repository.loadAll();
+
+    expect(Village.home.maxHall, 19);
+
+    final th19 = bases.where(
+      (base) => base.village == Village.home && base.hallLevel == 19,
+    );
+    expect(th19, isNotEmpty);
+    expect(th19.every((base) => base.gameLink!.contains('TH19')), isTrue);
+
+    final builderHalls = bases
+        .where((base) => base.village == Village.builder)
+        .map((base) => base.hallLevel)
+        .toSet();
+    expect(builderHalls, containsAll(<int>[4, 5, 6, 7, 8, 9, 10]));
+  });
+
+  testWidgets('Explore Builder Base chip lists Builder Base layouts',
+      (tester) async {
+    final state = AppState(repository: repositoryProvider());
+    addTearDown(state.dispose);
+    await tester.runAsync(state.load);
+
+    await tester.pumpWidget(
+      StateScope(
+        state: state,
+        child: MaterialApp(
+          theme: buildFortiqTheme(),
+          home: const ExploreScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('Builder Base'));
+    await tester.pump();
+
+    expect(state.filters.village, Village.builder);
+    expect(state.exploreResults, isNotEmpty);
+    expect(
+      state.exploreResults.every((base) => base.village == Village.builder),
+      isTrue,
+    );
+    expect(
+      state.exploreResults.every((base) => base.hallLevel != null),
+      isTrue,
+    );
+  });
+
+  testWidgets('Home Builder Base feed follows the selected Builder Hall',
+      (tester) async {
+    final repository = _repository([
+      _record(
+        id: 'bh10-base',
+        name: 'BH10 Base',
+        link: _builderBaseLink,
+        image: 'https://example.test/bh10.png',
+        townHall: 10,
+      ),
+      _record(
+        id: 'bh9-base',
+        name: 'BH9 Base',
+        link:
+            'https://link.clashofclans.com/en?action=OpenLayout&id=TH9%3ABB2%3AAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA',
+        image: 'https://example.test/bh9.png',
+        townHall: 9,
+      ),
+    ]);
+    final state = AppState(repository: repository);
+    addTearDown(state.dispose);
+    await tester.runAsync(state.load);
+
+    state.selectVillage(Village.builder);
+    expect(state.hallLevel, 10);
+    expect(state.featured?.name, 'BH10 Base');
+
+    state.selectHallLevel(9);
+    expect(state.featured?.name, 'BH9 Base');
+  });
+
+  testWidgets('a Builder Hall without official layouts never shows another hall',
+      (tester) async {
+    final repository = _repository([
+      _record(
+        id: 'bh10-base',
+        name: 'BH10 Base',
+        link: _builderBaseLink,
+        image: 'https://example.test/bh10.png',
+        townHall: 10,
+      ),
+    ]);
+    final state = AppState(repository: repository);
+    addTearDown(state.dispose);
+    await tester.runAsync(state.load);
+
+    state.selectVillage(Village.builder);
+    state.selectHallLevel(3);
+
+    expect(state.builderHallIsEmpty, isTrue);
+    expect(state.featured, isNull);
+    expect(state.trending, isEmpty);
+    expect(state.recent, isEmpty);
+    expect(state.greetingTitle, 'No Builder Hall 3 layouts yet');
+  });
+
+  testWidgets('a Builder Hall without official layouts shows an honest state',
+      (tester) async {
+    final repository = _repository([
+      _record(
+        id: 'bh10-base',
+        name: 'BH10 Base',
+        link: _builderBaseLink,
+        image: 'https://example.test/bh10.png',
+        townHall: 10,
+      ),
+    ]);
+    final state = AppState(repository: repository);
+    addTearDown(state.dispose);
+    await tester.runAsync(state.load);
+
+    state.selectVillage(Village.builder);
+    state.selectHallLevel(3);
+
+    await tester.pumpWidget(
+      StateScope(
+        state: state,
+        child: MaterialApp(
+          theme: buildFortiqTheme(),
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('builder-hall-empty')), findsOneWidget);
+    expect(find.byType(FeaturedBaseCard), findsNothing);
+    expect(find.text('Browse all Builder Base layouts'), findsOneWidget);
+
+    await tester.tap(find.text('Browse all Builder Base layouts'));
+    await tester.pump();
+
+    expect(state.filters.village, Village.builder);
+    expect(state.filters.hallLevels, isEmpty);
+  });
+
+  test('the packaged catalogue ships lighter thumbnails for heavy previews',
+      () async {
+    final raw = await rootBundle.loadString(
+      ClashBasesCatalogRepository.defaultCatalogueAssetPath,
+    );
+    final records = (jsonDecode(raw) as Map<String, dynamic>)['bases'] as List;
+    expect(records, isNotEmpty);
+
+    var withoutThumbnail = 0;
+    var heavyWithoutRendition = 0;
+    for (final entry in records) {
+      final record = entry as Map<String, dynamic>;
+      final image = record['image'] as String;
+      final thumbnail = record['thumbnail'] as String?;
+      if (thumbnail == null || thumbnail.isEmpty) {
+        withoutThumbnail++;
+        continue;
+      }
+      if (!thumbnail.startsWith('https://')) {
+        withoutThumbnail++;
+        continue;
+      }
+      // Hosts that publish one multi-megabyte original and no rendition must
+      // be requested through the resize proxy instead of the original file.
+      final heavy = image.contains('raw.githubusercontent.com/') ||
+          image.contains('media.oneclash.com/layout/');
+      if (heavy && !thumbnail.startsWith('https://wsrv.nl/')) {
+        heavyWithoutRendition++;
+      }
+    }
+
+    expect(withoutThumbnail, 0);
+    expect(heavyWithoutRendition, 0);
+  });
+
+  test('packaged rights evidence clears the attributed sources and retains notice',
       () async {
     final raw = await rootBundle.loadString(
       ClashBasesCatalogRepository.defaultRightsManifestAssetPath,
@@ -280,15 +495,21 @@ void main() {
       jsonDecode(raw) as Map<String, dynamic>,
     );
 
-    expect(manifest.sources, hasLength(1));
-    expect(manifest.clearedSources, hasLength(1));
-    expect(manifest.sources.single.contentRedistribution,
-        CatalogueRightsStatus.cleared);
-    expect(manifest.sources.single.previewRedistribution,
-        CatalogueRightsStatus.cleared);
-    expect(manifest.sources.single.licenseNotice,
+    expect(manifest.sources, hasLength(2));
+    expect(manifest.clearedSources, hasLength(2));
+    for (final source in manifest.sources) {
+      expect(source.contentRedistribution, CatalogueRightsStatus.cleared);
+      expect(source.previewRedistribution, CatalogueRightsStatus.cleared);
+    }
+    final clashBases = manifest.sourceById('clash-bases');
+    expect(clashBases, isNotNull);
+    expect(clashBases!.licenseNotice,
         contains('Copyright (c) 2026 Clash Bases contributors'));
-    expect(manifest.sources.single.evidence, contains('MIT-licensed'));
+    expect(clashBases.evidence, contains('MIT-licensed'));
+    final baseMelon = manifest.sourceById('basemelon');
+    expect(baseMelon, isNotNull);
+    expect(baseMelon!.licenseNotice, contains('link.clashofclans.com'));
+    expect(baseMelon.evidence, contains('project owner'));
     expect(manifest.unofficialDisclosure, contains('not affiliated with'));
     expect(manifest.unofficialDisclosure, contains('endorsed by Supercell'));
   });
@@ -315,9 +536,10 @@ void main() {
       _record(
         id: 'cleared-builder',
         name: 'Cleared Builder',
-        link: _builderLink,
+        link: _builderBaseLink,
         image: 'https://example.test/cleared-builder.png',
         type: 'Farm',
+        townHall: 10,
         builder: 'Fixture Builder Source',
         tags: const ['showcase'],
         added: '2026-11-21',
@@ -337,7 +559,8 @@ void main() {
     expect(bases.first.sourceAttribution, 'Fixture Home Source');
     expect(bases.first.rightsStatus, CatalogueRightsStatus.cleared);
     expect(bases.last.categories, ['Farming']);
-    expect(bases.last.hallLevel, isNull);
+    expect(bases.last.village, Village.builder);
+    expect(bases.last.hallLevel, 10);
     expect(repository.isCatalogueUnavailable, isFalse);
     expect(repository.featuredId, isNull);
     expect(repository.trendingIds, isEmpty);
@@ -378,7 +601,7 @@ void main() {
         _record(
           id: 'unresolved-preview',
           name: 'Unresolved Preview',
-          link: _builderLink,
+          link: _warBaseLink,
           image: 'https://example.test/unresolved-preview.png',
         )
       ],
@@ -402,7 +625,7 @@ void main() {
         _record(
           id: 'first',
           name: 'Second',
-          link: _builderLink,
+          link: _warBaseLink,
           image: 'https://example.test/second.png',
         ),
       ],
@@ -420,7 +643,7 @@ void main() {
         _record(
           id: 'second',
           name: 'Second',
-          link: _builderLink,
+          link: _warBaseLink,
           image: 'https://example.test/first.png',
         ),
       ],
@@ -529,18 +752,26 @@ void main() {
     );
   });
 
-  test('hall filters exclude unknown levels rather than guessing', () {
+  test('hall filters keep only the selected Builder Hall level', () {
     final builder = ClashBasesCatalogRepository.fromJson(_record(
-      id: 'unknown-hall',
-      name: 'Unknown Hall',
-      link: _builderLink,
-      image: 'https://example.test/unknown-hall.png',
+      id: 'builder-hall-10',
+      name: 'Builder Hall 10',
+      link: _builderBaseLink,
+      image: 'https://example.test/builder-hall-10.png',
+      townHall: 10,
     ));
 
     expect(
       queryBases(
         [builder],
         filters: ExploreFilters(village: Village.builder, hallLevels: {10}),
+      ),
+      hasLength(1),
+    );
+    expect(
+      queryBases(
+        [builder],
+        filters: ExploreFilters(village: Village.builder, hallLevels: {9}),
       ),
       isEmpty,
     );
@@ -552,10 +783,10 @@ void main() {
       _record(
         id: 'unclassified-builder',
         name: 'Unclassified Builder',
-        link: _builderLink,
+        link: _builderBaseLink,
         image: 'https://example.test/unclassified-builder.png',
         type: 'Progress',
-        townHall: 17,
+        townHall: 10,
       ),
     ]);
     final state = AppState(repository: repository);

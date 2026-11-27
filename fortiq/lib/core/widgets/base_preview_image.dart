@@ -11,15 +11,23 @@ class BasePreviewImage extends StatelessWidget {
   const BasePreviewImage({
     super.key,
     this.imageUrl,
+    this.thumbnailUrl,
     this.localImagePath,
     this.onRetry,
     this.retryKey = 0,
+    this.useFullSize = false,
   });
 
   final String? imageUrl;
+
+  /// Lightweight variant of [imageUrl] used by grid cards.
+  final String? thumbnailUrl;
   final String? localImagePath;
   final VoidCallback? onRetry;
   final int retryKey;
+
+  /// Loads [imageUrl] instead of the lighter [thumbnailUrl].
+  final bool useFullSize;
 
   @override
   Widget build(BuildContext context) {
@@ -32,23 +40,64 @@ class BasePreviewImage extends StatelessWidget {
             FortiqPreviewError(onRetry: onRetry),
       );
     }
-    final url = imageUrl?.trim();
+    final thumbnail = thumbnailUrl?.trim();
+    final full = imageUrl?.trim();
+    final url = (!useFullSize && thumbnail != null && thumbnail.isNotEmpty)
+        ? thumbnail
+        : full;
     if (url == null || url.isEmpty) {
       return const FortiqPreviewError(
         message: 'No cleared preview is available.',
         showRetry: false,
       );
     }
-    return CachedNetworkImage(
-      imageUrl: url,
-      cacheKey: '$url#$retryKey',
-      fit: BoxFit.cover,
-      progressIndicatorBuilder: (context, url, progress) =>
-          FortiqPreviewPlaceholder(
-        progress: progress.totalSize == null ? null : progress.progress,
-      ),
-      errorWidget: (context, url, error) =>
-          FortiqPreviewError(onRetry: onRetry),
+    final usingThumbnail = !useFullSize &&
+        thumbnail != null &&
+        thumbnail.isNotEmpty &&
+        thumbnail != full;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Decode at the size the preview is actually painted at. Decoding a
+        // 1600px source into a 170px card is the slowest part of showing a
+        // catalogue preview, so the decode width follows the layout box.
+        final pixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
+        final width = constraints.maxWidth;
+        final decodeWidth = width.isFinite && width > 0
+            ? (width * pixelRatio).ceil().clamp(240, 1600)
+            : null;
+        return CachedNetworkImage(
+          imageUrl: url,
+          cacheKey: '$url#$retryKey',
+          fit: BoxFit.cover,
+          memCacheWidth: decodeWidth,
+          fadeInDuration: Duration.zero,
+          progressIndicatorBuilder: (context, url, progress) =>
+                FortiqPreviewPlaceholder(
+              progress: progress.totalSize == null ? null : progress.progress,
+            ),
+          errorWidget: (context, url, error) {
+            // A thumbnail can fail while the full preview is still reachable
+            // (a resized rendition was removed upstream, a proxy is down).
+            // Fall back to the original instead of showing a dead card.
+            if (usingThumbnail && full != null && full.isNotEmpty) {
+              return CachedNetworkImage(
+                imageUrl: full,
+                cacheKey: '$full#$retryKey',
+                fit: BoxFit.cover,
+                memCacheWidth: decodeWidth,
+                fadeInDuration: Duration.zero,
+                progressIndicatorBuilder: (context, url, progress) =>
+                    FortiqPreviewPlaceholder(
+                  progress: progress.totalSize == null ? null : progress.progress,
+                ),
+                errorWidget: (context, url, error) =>
+                    FortiqPreviewError(onRetry: onRetry),
+              );
+            }
+            return FortiqPreviewError(onRetry: onRetry);
+          },
+        );
+      },
     );
   }
 }

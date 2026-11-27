@@ -11,6 +11,16 @@
       "contentRedistribution": "cleared",
       "previewRedistribution": "cleared",
       "evidence": "Upstream publishes this catalogue as an MIT-licensed public repository: its README describes the project as a community-editable library and its LICENSE grants use, copy, modification, and distribution of the project contents. Fortiq preserves every entry's attribution, original category/tags, and official Clash share link, and displays previews from the original public image URLs without copying or repackaging the image files. The Fortiq project owner reviewed and approved including this attributed source in the 2026-11-27 release."
+    },
+    {
+      "id": "basemelon",
+      "name": "BaseMelon community catalogue",
+      "upstreamUrl": "https://www.basemelon.com/",
+      "license": "Unofficial fan catalogue (no published licence)",
+      "licenseNotice": "BaseMelon publishes player-created Clash of Clans base layouts together with the official Supercell share links. Fortiq republishes only the layout title, description, category and the official link.clashofclans.com OpenLayout URL, credits BaseMelon and the base creator, and hotlinks the preview from img.basemelon.com instead of copying the image file. Base designs and images remain the property of their creators.",
+      "contentRedistribution": "cleared",
+      "previewRedistribution": "cleared",
+      "evidence": "BaseMelon is an unofficial fan catalogue and publishes no reuse grant; the earlier audit therefore found no express permission. On 2026-11-27 the Fortiq project owner approved including only the Town Hall 19 and Builder Hall 3-10 layouts that the MIT-licensed feed does not carry, on the basis that Fortiq stores metadata and official Supercell links only and hotlinks the previews without copying them. If BaseMelon's terms change, set this entry back to 'unresolved' and those records disappear from the app without a code change."
     }
   ]
 }

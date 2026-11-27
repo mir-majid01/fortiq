@@ -73,7 +73,9 @@ class BaseDetailScreen extends StatelessWidget {
                     height: 470,
                     child: Stack(
                       children: [
-                        Positioned.fill(child: LayoutPreview(base: base)),
+                        Positioned.fill(
+                          child: LayoutPreview(base: base, useFullSize: true),
+                        ),
                         const Positioned.fill(
                           child: PreviewScrim(
                             colors: [
