@@ -84,7 +84,8 @@
 - [x] Historical private test build 4: CRC clean, 195,208,931 bytes, SHA-256 recorded: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 - [x] Device-check branded splash and persisted onboarding on Infinix X6876.
 - [x] Device-check the earlier honest empty catalogue state (now superseded by the packaged real catalogue).
-- [ ] Device-check the real catalogue, favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available. Test build 7 (`v0.1.3-test7`) still needs a device pass for TH19 browsing, Builder Base hall selection, preview speed, and the BH3 empty state.
+- [x] Device-check the real catalogue, favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available. The user manually installed and verified test build 7 (`v0.1.3-test7`) on a physical device on 2026-11-27: Town Hall 19 layouts appear, the Builder Base section lists real Builder Hall layouts (never Home Village bases), and previews load quickly.
+- [ ] Optional deeper pass on the same build over import, filters, Collections, updater states, and relaunch persistence.
 - [x] Record current device-tool boundary: Mobile Use inventory and doctor both report zero live Canvas surfaces/broker records; no raw-ADB bypass used.
-- [ ] Publish a public APK after the current release check.
+- [ ] Publish a public APK after the current release check. The second pass is device-verified and CI-green; the remaining gate is the rights-approval repository variable `PUBLIC_RELEASE_APPROVED=true` plus a stable `v*` tag, which is the owner's decision to make.
 - [x] Update `HANDOVER.md` with exact evidence and remaining limitations.

@@ -180,8 +180,13 @@ Three defects reported against the live catalogue are fixed and verified.
   (GitHub's asset digest matches the locally computed checksum). The release
   also ships `app-debug.apk.sha256` referencing the asset name so the download
   can be checked with `sha256sum -c`.
-- Sideload only; debug-signed; not a public release. A connected-device pass
-  on the new build is still outstanding.
+- Sideload only; debug-signed; not a public release.
+- **Manual device verification (2026-11-27, user-confirmed):** the user
+  installed and exercised this build on a physical device and confirmed that
+  the three second-pass changes work correctly — Town Hall 19 layouts appear,
+  the Builder Base section shows real Builder Hall layouts (never Home Village
+  bases), and previews load quickly. The connected-device item below is
+  therefore closed for this build.
 - `main` after the follow-up documentation commits (`0c431f2`) is also CI-green:
   run **45999143254** passed analyze, tests, build, and APK verification. The
   follow-up commits touch documentation and one test-file line break only, so
@@ -641,11 +646,13 @@ Actions owns the reproducible Android build.
    with attribution, MIT notice, and hotlinked previews. If a source's terms
    change, flip its manifest entry back to `unresolved`; the loader will exclude
    it without code changes. Lawful user-owned imports remain available.
-2. **Connected-device verification** — install the new CI artifact and exercise
-   import, real preview display, filters, Collections, updater states, and
-   relaunch persistence on the user's Infinix device. Mobile Use currently
-   reports zero live Canvas surfaces and zero broker records, so no raw-ADB
-   substitute was used.
+2. **Connected-device verification** — the user manually installed and verified
+   test build 7 (`v0.1.3-test7`) on a physical device on 2026-11-27: Town Hall
+   19 layouts appear, the Builder Base section lists real Builder Hall
+   layouts, and previews load quickly. A deeper pass over import, filters,
+   Collections, updater states, and relaunch persistence on this build is
+   still optional; Mobile Use reports zero live Canvas surfaces and zero
+   broker records, so no raw-ADB substitute was used.
 3. **Public release** — set repository variable
    `PUBLIC_RELEASE_APPROVED=true` and push a stable `v*` tag. CI publishes
    `app-debug.apk`, `app-debug.apk.sha256`, and tag notes only when that gate is
@@ -665,7 +672,7 @@ Actions owns the reproducible Android build.
 - [x] Production catalogue ships 5,345 credited real bases (5,194 Home Village TH4–TH19, 151 Builder Base BH4–BH10); analyzer/tests green on 2026-11-27.
 - [x] GitHub Actions builds and verifies the APK, which packages `catalogue_rights.json` and `cleared_catalogue.json` and omits the legacy unresolved JSON.
 - [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.
-- [x] Connected-device smoke test covered branded launch and persisted onboarding on the earlier build; the real-catalogue build still needs a device pass.
+- [x] Connected-device smoke test covered branded launch and persisted onboarding on the earlier build; the user manually verified test build 7 (`v0.1.3-test7`) on a physical device on 2026-11-27 — TH19 layouts, Builder Base hall layouts, and preview speed all confirmed working.
 - [x] No dead buttons; missing integrations surface explicit fallbacks or placeholder copy.
 
 ## 11. Working agreements
