@@ -75,6 +75,9 @@ Previous build: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/
 
 ### Maintenance update — 2026-11-27
 
+> Superseded by the second-pass update below: the catalogue now ships 5,345
+> records, and the Builder Base section no longer lists Home Village war bases.
+
 - Fixed the empty production catalogue. The advertised catalogue now ships
   **5,162 real bases** (3,065 Home Village TH4–TH18, 2,097 Builder Base
   BH4–BH18) instead of showing “Catalogue unavailable”.
@@ -513,7 +516,11 @@ Visual comparison protocol (do not skip):
    proportions. Fix mismatches in the Flutter code (never by editing the
    reference), then re-run steps 1–3.
 
-### Final verification evidence — 2026-11-27 (real catalogue enabled)
+### Final verification evidence — 2026-11-27 (real catalogue enabled, first pass)
+
+> Historical checkpoint. The current numbers are in the second-pass evidence
+> above: 5,345 records, 5,194 Home Village, 151 Builder Base, plus the
+> thumbnail renditions.
 
 - `python tool/build_catalogue.py --source ..\clash-bases\bases.json --out
   assets\data\cleared_catalogue.json`: wrote **5,162 records** (2,505,588
