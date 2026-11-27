@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:install_plugin/install_plugin.dart';
+import 'package:flutter/services.dart';
 
 typedef ApkInstallInvoker = Future<dynamic> Function(String apkPath);
 
@@ -22,14 +22,22 @@ class InstallHandoffResult {
   final String message;
 }
 
-/// Android package-installer boundary. All plugin outcomes are normalized to
-/// a handoff or a recoverable failure; this service never throws.
+/// Android package-installer boundary. All native-channel outcomes are normalized
+/// to a handoff or a recoverable failure; this service never throws.
 class ApkInstaller {
   ApkInstaller({
     ApkInstallInvoker? install,
     bool Function()? isAndroid,
-  })  : _install = install ?? ((path) => InstallPlugin.install(path)),
+  })  : _install = install ?? _invokeNativeInstaller,
         _isAndroid = isAndroid ?? (() => Platform.isAndroid);
+
+  static const _channel = MethodChannel('fortiq/apk_installer');
+
+  static Future<bool?> _invokeNativeInstaller(String path) =>
+      _channel.invokeMethod<bool>(
+        'install',
+        {'path': path},
+      );
 
   final ApkInstallInvoker _install;
   final bool Function() _isAndroid;

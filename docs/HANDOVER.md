@@ -112,8 +112,9 @@ exit while retaining the required zero-error/zero-warning gate.
 Dependency-light by design: **no state-management or routing packages**.
 Runtime dependencies are `flutter_native_splash`, `share_plus`,
 `shared_preferences`, `url_launcher`, `cached_network_image`, `image_picker`,
-`path_provider`, `dio`, `package_info_plus`, `crypto`, `install_plugin`, and
-`flutter_markdown`; dev dependencies include `flutter_lints` and `image`.
+`path_provider`, `dio`, `package_info_plus`, `crypto`, and `flutter_markdown`;
+the Android installer uses a native `MethodChannel` plus `FileProvider` rather
+than a third-party plugin. Dev dependencies include `flutter_lints` and `image`.
 Fonts are bundled TTFs (no google_fonts).
 
 ```
@@ -382,7 +383,7 @@ FLUTTER=/c/flutter-sdk/flutter/bin/flutter.bat
 # 1. Static analysis — must be 0 errors / 0 warnings (deprecation infos OK)
 $FLUTTER analyze --no-fatal-infos
 
-# 2. Tests — 238 green: preview/data/query/SVG/state tests, widget controls,
+# 2. Tests — 239 green: preview/data/query/SVG/state tests, widget controls,
 #    end-to-end flows, rights-gated catalogue, responsive/safe-area cases,
 #    and all nine golden captures
 $FLUTTER test
@@ -408,7 +409,7 @@ Visual comparison protocol (do not skip):
 - `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings, 133
   infos**. The Flutter 3.50 `material.dart` migration remains intentionally out
   of scope.
-- `flutter test --reporter expanded`: exit 0, **238 tests passed**, including
+- `flutter test --reporter expanded`: exit 0, **239 tests passed**, including
   all nine Windows golden comparisons.
 - Review and regression fixes covered compact real-preview errors, stale
   updater cache invalidation when checksum metadata changes, build-number
@@ -487,7 +488,7 @@ need a future upgrade for Flutter's Built-in Kotlin transition.
 ## 10. Definition of done
 
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 133 retained info-level diagnostics.
-- [x] `flutter test`: all 238 tests pass, including rights/import/updater coverage and nine golden comparisons.
+- [x] `flutter test`: all 239 tests pass, including rights/import/updater coverage and nine golden comparisons.
 - [x] Goldens reviewed against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
 - [x] `flutter build apk --debug` produces a CRC-valid 195,208,931-byte APK with no unresolved catalogue JSON.
 - [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.

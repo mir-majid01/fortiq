@@ -364,6 +364,28 @@ void mainInstallerTests() {
     await tempDirectory.delete(recursive: true);
   });
 
+  test('uses the native Fortiq installer channel by default', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    const channel = MethodChannel('fortiq/apk_installer');
+    final calls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return true;
+    });
+    addTearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null);
+    });
+
+    final result = await ApkInstaller(isAndroid: () => true).handOff(apk.path);
+
+    expect(result.status, InstallHandoffStatus.handedOff);
+    expect(calls, hasLength(1));
+    expect(calls.single.method, 'install');
+    expect(calls.single.arguments, {'path': apk.absolute.path});
+  });
+
   test('maps plugin acceptance only to installer handoff', () async {
     final installer = ApkInstaller(
       isAndroid: () => true,

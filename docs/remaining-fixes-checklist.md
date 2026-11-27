@@ -67,7 +67,7 @@
 ## Final verification and delivery
 
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, 133 retained infos.
-- [x] Full `flutter test`: 238 tests green.
+- [x] Full `flutter test`: 239 tests green.
 - [x] Golden comparisons pass against the approved sample/reference renders.
 - [ ] Trigger GitHub CI and validate the new debug APK/checksum.
 - [ ] Publish and verify a new private test release.
