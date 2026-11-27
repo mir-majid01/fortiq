@@ -182,6 +182,10 @@ Three defects reported against the live catalogue are fixed and verified.
   can be checked with `sha256sum -c`.
 - Sideload only; debug-signed; not a public release. A connected-device pass
   on the new build is still outstanding.
+- `main` after the follow-up documentation commits (`0c431f2`) is also CI-green:
+  run **45999143254** passed analyze, tests, build, and APK verification. The
+  follow-up commits touch documentation and one test-file line break only, so
+  the published APK corresponds to the same application sources.
 
 ---
 
