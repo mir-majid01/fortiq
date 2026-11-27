@@ -18,7 +18,7 @@ Let users discover, inspect, download, verify, and install the latest public For
 
 ## Chosen approach
 
-Use the public GitHub Releases API as the update source, `dio` for streamed downloads, `package_info_plus` for installed version/build metadata, `path_provider` for app-private storage, `crypto` for SHA-256 verification, and `install_plugin` for Android's package-installer handoff.
+Use the public GitHub Releases API as the update source, `dio` for streamed downloads, `package_info_plus` for installed version/build metadata, `path_provider` for app-private storage, `crypto` for SHA-256 verification, and a native Android `MethodChannel` with `FileProvider` for package-installer handoff.
 
 Alternatives rejected:
 
@@ -106,7 +106,7 @@ A missing/mismatched checksum blocks installation. The UI explains why and offer
 
 ## Android install handoff
 
-Add `android.permission.REQUEST_INSTALL_PACKAGES`. On Android 8+, the user may need to grant “Install unknown apps” for Fortiq. `InstallPlugin.install(path)` opens the system package installer. Fortiq reports only that the installer was handed off; it does not claim the update finished. If the result is failure/cancel, show a recovery action.
+Add `android.permission.REQUEST_INSTALL_PACKAGES`. On Android 8+, the user may need to grant “Install unknown apps” for Fortiq. A native `fortiq/apk_installer` method channel exposes the verified cache file through a non-exported `FileProvider` and opens `ACTION_VIEW` with `application/vnd.android.package-archive`. Fortiq reports only that the installer was handed off; it does not claim the update finished. If the result is failure/cancel, show a recovery action.
 
 No storage permission is requested because the APK is written to app-private storage.
 
@@ -172,13 +172,13 @@ Release publication remains a human-approved action in this repository.
 
 ## Acceptance criteria
 
-- [ ] User can open a dedicated updates page from Home.
-- [ ] Current and latest versions, date, size, checksum, and patch notes are shown.
-- [ ] Download progress is real, animated, cancellable, and restartable.
-- [ ] APK is installed only after byte-count and SHA-256 verification.
-- [ ] Errors have clear recovery actions.
-- [ ] No update is reported as installed merely because the installer opened.
+- [x] User can open a dedicated updates page from Home.
+- [x] Current and latest versions, date, size, checksum, and patch notes are shown.
+- [x] Download progress is real, animated, cancellable, and restartable.
+- [x] APK is installed only after byte-count and SHA-256 verification.
+- [x] Errors have clear recovery actions.
+- [x] No update is reported as installed merely because the installer opened.
 - [ ] Public GitHub Release assets are fetchable without authentication.
-- [ ] iOS never attempts sideloading.
-- [ ] No rights-uncleared APK is published.
+- [x] iOS never attempts sideloading.
+- [x] No rights-uncleared APK is published.
 - [ ] Analyzer/tests/build pass and device handoff is verified when a device is connected.

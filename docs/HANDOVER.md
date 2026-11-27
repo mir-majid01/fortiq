@@ -35,7 +35,7 @@ through GitHub Releases after the rights review passes.
 Private remote-testing releases: <https://github.com/mir-majid01/fortiq-test-builds>.
 These are personal debug builds and are not public rights-cleared releases.
 Latest device-test build:
-<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
+<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 
 ### Maintenance update — 2026-11-26
 
@@ -416,6 +416,20 @@ Visual comparison protocol (do not skip):
   parsing from stable tag metadata, Home selected-hall scoping, direct
   Collections unsave, catalogue loading feedback, and incidental-substring
   taxonomy rejection.
+- Final catalogue audit: **5,162** upstream records, **0** rights-cleared,
+  **0** usable cleared previews, **5,162** structurally valid official links,
+  and **5,162** excluded unresolved records.
+- GitHub Actions run
+  <https://github.com/mir-majid01/fortiq/actions/runs/45959058351> passed
+  analysis, non-golden tests, Android build, APK rights/integrity verification,
+  SHA-256 generation, and artifact upload.
+- CI APK: **170,117,716 bytes**, SHA-256
+  `c8143fdfd9782e9f6a8de41cf34e09e8eaab5ec1ceb0f21791a1d38fd139bc14`.
+  Local revalidation passed ZIP CRC, required entries, and absence of
+  `clash_bases_catalog.json`.
+- Private test build 5 was uploaded and verified through the GitHub Releases API;
+  remote APK size/digest match the CI artifact exactly:
+  <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 
 ### Final verification evidence — 2026-11-26 (Task 4, historical)
 
@@ -457,9 +471,9 @@ export PUB_CACHE=/c/flutter-sdk/.pub-cache
 # → build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-The completed debug artifact is present at the path above. A non-fatal Gradle
-warning notes that `share_plus` still applies the Kotlin Gradle Plugin and may
-need a future upgrade for Flutter's Built-in Kotlin transition.
+The current CI artifact is distributed through private test build 5 linked in
+the overnight evidence above. Local Gradle is not the delivery gate; GitHub
+Actions owns the reproducible Android build.
 
 ---
 
@@ -490,7 +504,7 @@ need a future upgrade for Flutter's Built-in Kotlin transition.
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 133 retained info-level diagnostics.
 - [x] `flutter test`: all 239 tests pass, including rights/import/updater coverage and nine golden comparisons.
 - [x] Goldens reviewed against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
-- [x] `flutter build apk --debug` produces a CRC-valid 195,208,931-byte APK with no unresolved catalogue JSON.
+- [x] GitHub Actions produces a CRC-valid 170,117,716-byte APK with no unresolved catalogue JSON; remote test-build 5 size/SHA-256 match.
 - [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.
 - [x] Connected-device smoke test covered branded launch, persisted onboarding, Home/Explore/Collections, and the honest empty catalogue state.
 - [x] No dead buttons; missing integrations surface explicit fallbacks or placeholder copy.

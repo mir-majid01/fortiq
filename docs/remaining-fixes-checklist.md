@@ -24,6 +24,7 @@
 - [x] Enable only records with documented permission; current cleared count is zero.
 - [x] Production shows an honest unavailable state instead of sample/fake bases.
 - [x] Keep full unresolved JSON out of the public repository and APK packaging.
+- [x] Final audit: 5,162 upstream records; 0 rights-cleared; 0 usable cleared previews; 5,162 valid official links; 5,162 excluded unresolved.
 
 ## Real previews and game links
 
@@ -69,8 +70,8 @@
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, 133 retained infos.
 - [x] Full `flutter test`: 239 tests green.
 - [x] Golden comparisons pass against the approved sample/reference renders.
-- [ ] Trigger GitHub CI and validate the new debug APK/checksum.
-- [ ] Publish and verify a new private test release.
+- [x] Trigger GitHub CI and validate the new debug APK/checksum: run 45959058351, 170,117,716 bytes, SHA-256 `c8143fdfd9782e9f6a8de41cf34e09e8eaab5ec1ceb0f21791a1d38fd139bc14`.
+- [x] Publish and verify private test build 5: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 - [x] Historical private test build 4: CRC clean, 195,208,931 bytes, SHA-256 recorded: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 - [x] Device-check branded splash, persisted onboarding, three-tab nav, and honest empty catalogue state on Infinix X6876.
 - [ ] Device-check favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available.
