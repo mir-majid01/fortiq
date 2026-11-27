@@ -444,6 +444,20 @@ Visual comparison protocol (do not skip):
   `media.oneclash.com`, `img.basemelon.com`, `raw.githubusercontent.com`,
   `bases-coc.com`, `blueprintcoc.com`, `i.imgur.com`, `cdn.shopify.com`.
   Images remain hotlinked from the original public URLs.
+- Runtime probe against the packaged asset: **5,162** loaded bases, **207**
+  Home Village TH16 entries for the default feed, **2,097** Builder Base
+  entries, **0** unknown-village entries, a real featured base, and
+  `catalogueUnavailable == false`.
+- GitHub Actions run
+  <https://github.com/mir-majid01/fortiq/actions/runs/45966907616> passed
+  analysis, every non-golden test, the Android build, and APK verification.
+- CI APK: **170,460,516 bytes**, SHA-256
+  `51f2088356b1771e03874cdd27ea5041304eb632b56b1397ccc445a6b1314542`.
+  Local revalidation reports `catalogue_bases=5162`, `cleared_sources=1`, and
+  no `clash_bases_catalog.json`.
+- `verify_apk.py` now fails the build if the packaged catalogue is empty, has
+  duplicate IDs, or contains a record from an uncleared source, so the original
+  “Catalogue unavailable” regression cannot ship again.
 
 ### Final verification evidence — 2026-11-26 (overnight completion, historical)
 

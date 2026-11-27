@@ -24,6 +24,7 @@
 - [x] Clear the `clash-bases` source for content and previews under its MIT licence, retaining attribution and the unofficial disclosure.
 - [x] Add `tool/build_catalogue.py`, which validates the upstream export and writes the versioned `assets/data/cleared_catalogue.json`.
 - [x] Package **5,162** real bases (3,065 Home Village TH4–TH18, 2,097 Builder Base BH4–BH18); production no longer shows an empty catalogue.
+- [x] Fail the APK build if the packaged catalogue is empty, has duplicate IDs, or includes an uncleared source.
 - [x] Fail the build on duplicate/malformed records instead of silently dropping them at runtime.
 - [x] Keep the legacy `clash_bases_catalog.json` out of the repository and APK packaging.
 - [x] Final audit: 5,162 records; 5,162 cleared; 5,162 valid official links; unique id/link/image; all preview hosts sampled HTTP 200.
@@ -72,7 +73,7 @@
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, info-level diagnostics only.
 - [x] Full `flutter test`: 239 tests green (goldens excluded from CI; they pass locally with the sample repository).
 - [x] Golden comparisons pass against the approved sample/reference renders.
-- [x] Trigger GitHub CI and validate the new debug APK/checksum after enabling the real catalogue.
+- [x] Trigger GitHub CI and validate the new debug APK/checksum: run 45966907616, 170,460,516 bytes, SHA-256 `51f2088356b1771e03874cdd27ea5041304eb632b56b1397ccc445a6b1314542`; packaged catalogue verified at 5,162 bases.
 - [x] Publish and verify private test build 5: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 - [x] Historical private test build 4: CRC clean, 195,208,931 bytes, SHA-256 recorded: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 - [x] Device-check branded splash and persisted onboarding on Infinix X6876.
