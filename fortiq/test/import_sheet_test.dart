@@ -6,9 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fortiq/app/state/app_state.dart';
 import 'package:fortiq/app/theme/app_theme.dart';
 import 'package:fortiq/core/widgets/state_scope.dart';
+import 'package:fortiq/data/models/base_layout.dart';
+import 'package:fortiq/data/repositories/base_repository.dart';
 import 'package:fortiq/data/repositories/composite_base_repository.dart';
 import 'package:fortiq/data/repositories/imported_base_store.dart';
-import 'package:fortiq/data/sources/clash_bases_source.dart';
 import 'package:fortiq/features/explore/explore_screen.dart';
 import 'package:fortiq/features/import/import_base_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,7 +53,7 @@ void main() {
     final directory = Directory.systemTemp.createTempSync('fortiq-sheet');
     addTearDown(() => directory.deleteSync(recursive: true));
     final repository = CompositeBaseRepository(
-      remote: ClashBasesCatalogRepository(),
+      remote: _EmptyBaseRepository(),
       imports: ImportedBaseStore(directory: directory),
     );
     final state = AppState(repository: repository);
@@ -199,7 +200,7 @@ void main() {
     addTearDown(() => directory.deleteSync(recursive: true));
     final state = AppState(
       repository: CompositeBaseRepository(
-        remote: ClashBasesCatalogRepository(),
+        remote: _EmptyBaseRepository(),
         imports: ImportedBaseStore(directory: directory),
       ),
     );
@@ -223,4 +224,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(ImportBaseSheet), findsOneWidget);
   });
+}
+
+/// Empty remote source used to exercise the unavailable/import path without
+/// depending on the packaged production catalogue.
+class _EmptyBaseRepository implements BaseRepository {
+  @override
+  Future<List<BaseLayout>> loadAll() async => const [];
+
+  @override
+  bool get isCatalogueUnavailable => true;
+
+  @override
+  String? get featuredId => null;
+
+  @override
+  List<String> get trendingIds => const [];
+
+  @override
+  List<String> get recentIds => const [];
 }

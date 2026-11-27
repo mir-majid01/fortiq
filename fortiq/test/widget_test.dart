@@ -52,7 +52,9 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(const FortiqApp());
+    final appState = AppState(repository: SampleBaseRepository());
+    addTearDown(appState.dispose);
+    await tester.pumpWidget(FortiqApp(state: appState));
     expect(find.byType(SplashScreen), findsOneWidget);
     final scoped = StateScope.of(tester.element(find.byType(SplashScreen)));
 

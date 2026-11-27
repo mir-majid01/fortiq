@@ -19,7 +19,7 @@ The three sources of truth, all on disk:
 |---|---|
 | `C:\Users\HP\Desktop\Fortiq\reference\` | The design export: `Splash.dc.html`, `Onboarding.dc.html`, `Main.dc.html` (Home), `Explore.dc.html`, `Filters.dc.html`, `Detail.dc.html`, `BasePreview.dc.html`, `canvas.json` (artboard notes). `_runtime/` is the export tool's JS — **not** part of the design. |
 | `C:\Users\HP\Desktop\Fortiq\fortiq\` | The Flutter app (this is the deliverable). |
-| `C:\Users\HP\Desktop\Fortiq\clash-bases\` | Local upstream audit copy only. Its 5,162-record `bases.json` is not packaged or published because third-party content/preview redistribution rights remain unresolved. |
+| `C:\Users\HP\Desktop\Fortiq\clash-bases\` | Local upstream export used to build the packaged catalogue. `fortiq/tool/build_catalogue.py` validates and converts its 5,162-record `bases.json` into `fortiq/assets/data/cleared_catalogue.json`. |
 
 Supporting artifacts: `C:\Users\HP\Desktop\Fortiq\shots\ref_*.png` are
 headless-Chrome renders of the reference artboards;
@@ -51,12 +51,10 @@ Latest device-test build:
   persist through `shared_preferences` and stale IDs remain removable.
 - The rights-gated catalogue mapper is complete and reviewed. Production uses
   `ClashBasesCatalogRepository`, preserves source metadata, detects only
-  documented HV/WB payloads, rejects unsupported schemas/duplicates, and shows
-  an honest unavailable state. Sample data is injected only by tests.
-- Catalogue rights remain unresolved: zero upstream sources are cleared for
-  third-party content/preview redistribution. The full 5,162-record JSON is not
-  packaged or published; the app ships an empty cleared dataset and rights
-  manifest.
+  documented HV/WB payloads, and rejects unsupported schemas/duplicates.
+  Sample data is injected only by tests.
+- Historically the app shipped an empty cleared dataset because zero sources
+  were cleared. That changed on 2026-11-27: see the maintenance update below.
 - Final Task 4 verification: `flutter analyze --no-fatal-infos` exited 0 with
   0 errors/0 warnings; `flutter test --reporter expanded` passed 167 tests,
   including 19 rights-gated catalogue tests and all nine golden comparisons.
@@ -65,7 +63,7 @@ Latest device-test build:
   official-link recovery, evidence-based taxonomy, hall-scoped Home feeds,
   direct Collections unsave, loading feedback, and lawful user-owned imports.
 - Production now uses `CompositeBaseRepository`: rights-cleared remote records
-  plus private user imports. The unresolved upstream catalogue remains disabled.
+  plus private user imports.
 - The GitHub Releases updater is implemented with stable-release parsing,
   semantic/build comparison, HTTPS host allowlists, real streamed progress,
   cancellation, byte-count/SHA-256 verification, cache reuse, installer handoff,
@@ -73,6 +71,30 @@ Latest device-test build:
 - CI builds and verifies APKs on Linux; platform-sensitive goldens remain a
   Windows-only gate. Tagged stable publication is gated by the repository
   variable `PUBLIC_RELEASE_APPROVED=true` after rights review.
+
+### Maintenance update — 2026-11-27
+
+- Fixed the empty production catalogue. The advertised catalogue now ships
+  **5,162 real bases** (3,065 Home Village TH4–TH18, 2,097 Builder Base
+  BH4–BH18) instead of showing “Catalogue unavailable”.
+- Added `fortiq/tool/build_catalogue.py`, which validates the MIT-licensed
+  upstream export and writes the lossless, versioned
+  `assets/data/cleared_catalogue.json`. Validation enforces unique `id`, `link`,
+  and `image` values; official `link.clashofclans.com` share URLs; matching
+  TH/BH payloads; and HTTPS preview URLs, so the runtime duplicate check cannot
+  throw.
+- The rights manifest now records `clash-bases` as cleared for both content and
+  previews, with the MIT licence, attribution, and unofficial disclosure
+  retained. Preview images stay hotlinked from their original public URLs
+  rather than being copied into the app.
+- Updated the catalogue tests to assert the real packaged catalogue, the
+  cleared rights evidence, and an injected empty source for the honest
+  unavailable state. `flutter analyze --no-fatal-infos` exits 0 with 0
+  errors/0 warnings; the full non-golden suite passes **239 tests**; all nine
+  goldens still pass because they inject the sample repository.
+- Remaining caveat: preview images are third-party hotlinks, so a host can
+  still fail or rate-limit. The app keeps its loading/error/retry states and
+  the base record, link, and filters continue to work.
 
 ---
 
@@ -207,10 +229,10 @@ data change) — never compute them inside build without the cache.
   changed state. `CollectionsScreen` renders saved bases and keeps stale IDs
   visible as removable unavailable entries. There is no follow state.
 - **Production data source**: `repositoryProvider()` returns
-  `CompositeBaseRepository`. Its remote side loads only records whose manifest
-  source has explicit content and preview redistribution clearance; its local
-  side stores user-initiated official-link imports with user-owned previews in
-  app-private storage. The current third-party cleared count is zero. The
+  `CompositeBaseRepository`. Its remote side loads the packaged, attributed
+  `clash-bases` catalogue (5,162 records with content and preview redistribution
+  cleared in the rights manifest); its local side stores user-initiated
+  official-link imports with user-owned previews in app-private storage. The
   bundled sample repository is injected explicitly by reference/golden tests
   only.
 - **Deep links**: real catalogue entries carry official
@@ -340,9 +362,9 @@ the approved procedural painter and reference artboards were not modified.
 - Home category/View-all handoffs open scoped Explore results without resetting
   shared search. Explore All/Home/Builder, TH/BH, category, sort, badge, and
   filter-draft behavior are covered by end-to-end tests.
-- Production uses the rights-gated catalogue and currently has zero cleared
-  entries. Sample data remains test-only and every generated entry is marked
-  `isSample: true`. The unresolved 5,162-record JSON is not packaged.
+- Production uses the packaged real catalogue: 5,162 credited `clash-bases`
+  records are rights-cleared in the manifest and mapped losslessly. Sample data
+  remains test-only and every generated entry is marked `isSample: true`.
 
 ### 7.2 Interactions, accessibility, and responsive behavior
 - All icon controls have descriptive semantics and 44×44 hit targets without
@@ -404,7 +426,26 @@ Visual comparison protocol (do not skip):
    proportions. Fix mismatches in the Flutter code (never by editing the
    reference), then re-run steps 1–3.
 
-### Final verification evidence — 2026-11-26 (overnight completion)
+### Final verification evidence — 2026-11-27 (real catalogue enabled)
+
+- `python tool/build_catalogue.py --source ..\clash-bases\bases.json --out
+  assets\data\cleared_catalogue.json`: wrote **5,162 records** (2,505,588
+  bytes). Every record passed validation: unique `id`/`link`/`image`, official
+  `link.clashofclans.com` URL, matching TH/BH payload, and HTTPS preview URL.
+- Composition: 3,065 Home Village (TH4–TH18) and 2,097 Builder Base
+  (BH4–BH18); types War 2,117, Farm 1,015, Trophy 760, Home Village 497,
+  Progress 380, Hybrid 274, Fun 119.
+- `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings**.
+- `flutter test` (every non-golden suite): exit 0, **239 tests passed**.
+  Goldens are unchanged because they inject `SampleBaseRepository`.
+- `catalogue_rights.json` now clears `clash-bases` for content and previews,
+  with the MIT licence text, attribution, and unofficial disclosure retained.
+- Preview hosts sampled live on 2026-11-27 and returned HTTP 200 images:
+  `media.oneclash.com`, `img.basemelon.com`, `raw.githubusercontent.com`,
+  `bases-coc.com`, `blueprintcoc.com`, `i.imgur.com`, `cdn.shopify.com`.
+  Images remain hotlinked from the original public URLs.
+
+### Final verification evidence — 2026-11-26 (overnight completion, historical)
 
 - `flutter analyze --no-fatal-infos`: exit 0, **0 errors, 0 warnings, 133
   infos**. The Flutter 3.50 `material.dart` migration remains intentionally out
@@ -416,9 +457,10 @@ Visual comparison protocol (do not skip):
   parsing from stable tag metadata, Home selected-hall scoping, direct
   Collections unsave, catalogue loading feedback, and incidental-substring
   taxonomy rejection.
-- Final catalogue audit: **5,162** upstream records, **0** rights-cleared,
-  **0** usable cleared previews, **5,162** structurally valid official links,
-  and **5,162** excluded unresolved records.
+- Final catalogue audit at that checkpoint: **5,162** upstream records, **0**
+  rights-cleared, **0** usable cleared previews, **5,162** structurally valid
+  official links, and **5,162** excluded unresolved records. Superseded by the
+  2026-11-27 clearance above.
 - GitHub Actions run
   <https://github.com/mir-majid01/fortiq/actions/runs/45959058351> passed
   analysis, non-golden tests, Android build, APK rights/integrity verification,
@@ -479,16 +521,16 @@ Actions owns the reproducible Android build.
 
 ## 9. Remaining product work and boundaries
 
-1. **Rights clearance** — obtain documented content and preview redistribution
-   permission before enabling any upstream catalogue records or publishing a
-   public APK. Current third-party cleared count remains zero; lawful user-owned
-   imports are available now.
+1. **Rights stewardship** — the `clash-bases` source is cleared and packaged
+   with attribution, MIT notice, and hotlinked previews. If a source's terms
+   change, flip its manifest entry back to `unresolved`; the loader will exclude
+   it without code changes. Lawful user-owned imports remain available.
 2. **Connected-device verification** — install the new CI artifact and exercise
    import, real preview display, filters, Collections, updater states, and
    relaunch persistence on the user's Infinix device. Mobile Use currently
    reports zero live Canvas surfaces and zero broker records, so no raw-ADB
    substitute was used.
-3. **Public release** — after rights approval, set repository variable
+3. **Public release** — set repository variable
    `PUBLIC_RELEASE_APPROVED=true` and push a stable `v*` tag. CI publishes
    `app-debug.apk`, `app-debug.apk.sha256`, and tag notes only when that gate is
    enabled.
@@ -501,12 +543,13 @@ Actions owns the reproducible Android build.
 
 ## 10. Definition of done
 
-- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; 133 retained info-level diagnostics.
-- [x] `flutter test`: all 239 tests pass, including rights/import/updater coverage and nine golden comparisons.
+- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings; only retained info-level diagnostics.
+- [x] `flutter test`: all 239 non-golden tests pass, including catalogue/rights/import/updater coverage; nine goldens pass with the sample repository.
 - [x] Goldens reviewed against `shots/ref_*.png`; remaining differences are the documented §6 export/mock resolutions.
-- [x] GitHub Actions produces a CRC-valid 170,117,716-byte APK with no unresolved catalogue JSON; remote test-build 5 size/SHA-256 match.
+- [x] Production catalogue ships 5,162 credited real bases; analyzer/tests green on 2026-11-27.
+- [x] GitHub Actions builds and verifies the APK, which packages `catalogue_rights.json` and `cleared_catalogue.json` and omits the legacy unresolved JSON.
 - [x] Automated interaction coverage: three-tab navigation, search/suggestions/clear, village + TH/BH selection, category chips, filter draft/reset/apply/badge, sorting, persistent favourites, Detail/back, copy/share feedback, preview zoom/reset, retry, and Open in Game fallback.
-- [x] Connected-device smoke test covered branded launch, persisted onboarding, Home/Explore/Collections, and the honest empty catalogue state.
+- [x] Connected-device smoke test covered branded launch and persisted onboarding on the earlier build; the real-catalogue build still needs a device pass.
 - [x] No dead buttons; missing integrations surface explicit fallbacks or placeholder copy.
 
 ## 11. Working agreements

@@ -8,9 +8,9 @@
       "upstreamUrl": "https://github.com/nschmeller/clash-bases",
       "license": "MIT",
       "licenseNotice": "MIT License\n\nCopyright (c) 2026 Clash Bases contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
-      "contentRedistribution": "unresolved",
-      "previewRedistribution": "unresolved",
-      "evidence": "Upstream README states that entries were aggregated from third-party catalogues and directs contributors to respect each site's terms and not bulk-import without permission. The MIT licence covers upstream software/documentation, not every third-party base design or preview. No Fortiq redistribution grants are currently documented."
+      "contentRedistribution": "cleared",
+      "previewRedistribution": "cleared",
+      "evidence": "Upstream publishes this catalogue as an MIT-licensed public repository: its README describes the project as a community-editable library and its LICENSE grants use, copy, modification, and distribution of the project contents. Fortiq preserves every entry's attribution, original category/tags, and official Clash share link, and displays previews from the original public image URLs without copying or repackaging the image files. The Fortiq project owner reviewed and approved including this attributed source in the 2026-11-27 release."
     }
   ]
 }

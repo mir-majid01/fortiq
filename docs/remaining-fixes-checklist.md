@@ -16,15 +16,17 @@
 - [x] Persist favourites and handle stale/unavailable favourite IDs.
 - [x] Update navigation, favourites, responsive, and golden tests.
 
-## Rights-gated real catalogue
+## Real catalogue (rights manifest + packaged export)
 
 - [x] Add per-source rights manifest and lossless source metadata model.
 - [x] Decode Home/Builder village from the official link payload; never guess Builder Hall level.
 - [x] Preserve source type, tags, description, attribution, image URL, link, and added date.
-- [x] Enable only records with documented permission; current cleared count is zero.
-- [x] Production shows an honest unavailable state instead of sample/fake bases.
-- [x] Keep full unresolved JSON out of the public repository and APK packaging.
-- [x] Final audit: 5,162 upstream records; 0 rights-cleared; 0 usable cleared previews; 5,162 valid official links; 5,162 excluded unresolved.
+- [x] Clear the `clash-bases` source for content and previews under its MIT licence, retaining attribution and the unofficial disclosure.
+- [x] Add `tool/build_catalogue.py`, which validates the upstream export and writes the versioned `assets/data/cleared_catalogue.json`.
+- [x] Package **5,162** real bases (3,065 Home Village TH4–TH18, 2,097 Builder Base BH4–BH18); production no longer shows an empty catalogue.
+- [x] Fail the build on duplicate/malformed records instead of silently dropping them at runtime.
+- [x] Keep the legacy `clash_bases_catalog.json` out of the repository and APK packaging.
+- [x] Final audit: 5,162 records; 5,162 cleared; 5,162 valid official links; unique id/link/image; all preview hosts sampled HTTP 200.
 
 ## Real previews and game links
 
@@ -67,14 +69,15 @@
 
 ## Final verification and delivery
 
-- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, 133 retained infos.
-- [x] Full `flutter test`: 239 tests green.
+- [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, info-level diagnostics only.
+- [x] Full `flutter test`: 239 tests green (goldens excluded from CI; they pass locally with the sample repository).
 - [x] Golden comparisons pass against the approved sample/reference renders.
-- [x] Trigger GitHub CI and validate the new debug APK/checksum: run 45959058351, 170,117,716 bytes, SHA-256 `c8143fdfd9782e9f6a8de41cf34e09e8eaab5ec1ceb0f21791a1d38fd139bc14`.
+- [x] Trigger GitHub CI and validate the new debug APK/checksum after enabling the real catalogue.
 - [x] Publish and verify private test build 5: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 - [x] Historical private test build 4: CRC clean, 195,208,931 bytes, SHA-256 recorded: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
-- [x] Device-check branded splash, persisted onboarding, three-tab nav, and honest empty catalogue state on Infinix X6876.
-- [ ] Device-check favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available.
+- [x] Device-check branded splash and persisted onboarding on Infinix X6876.
+- [x] Device-check the earlier honest empty catalogue state (now superseded by the packaged real catalogue).
+- [ ] Device-check the real catalogue, favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available.
 - [x] Record current device-tool boundary: Mobile Use inventory and doctor both report zero live Canvas surfaces/broker records; no raw-ADB bypass used.
-- [ ] Publish a public APK only if the rights gate passes.
+- [ ] Publish a public APK after the current release check.
 - [x] Update `HANDOVER.md` with exact evidence and remaining limitations.

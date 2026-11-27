@@ -254,19 +254,24 @@ void main() {
     expect(base.creatorHandle, 'Source unavailable');
   });
 
-  test('production defaults to the rights-gated catalogue, never samples',
-      () async {
+  test('production uses the packaged real catalogue, never samples', () async {
     final repository = repositoryProvider();
 
     expect(repository, isA<CompositeBaseRepository>());
     expect(repository, isNot(isA<SampleBaseRepository>()));
     expect((repository as CompositeBaseRepository).remote,
         isA<ClashBasesCatalogRepository>());
-    expect(await repository.loadAll(), isEmpty);
-    expect(repository.isCatalogueUnavailable, isTrue);
+
+    final bases = await repository.loadAll();
+
+    expect(bases, isNotEmpty);
+    expect(bases.length, greaterThan(1000));
+    expect(bases.every((base) => !base.isSample), isTrue);
+    expect(bases.every((base) => base.gameLink != null), isTrue);
+    expect(repository.isCatalogueUnavailable, isFalse);
   });
 
-  test('packaged rights evidence clears zero sources and retains MIT notice',
+  test('packaged rights evidence clears the attributed source and retains notice',
       () async {
     final raw = await rootBundle.loadString(
       ClashBasesCatalogRepository.defaultRightsManifestAssetPath,
@@ -276,18 +281,19 @@ void main() {
     );
 
     expect(manifest.sources, hasLength(1));
-    expect(manifest.clearedSources, isEmpty);
+    expect(manifest.clearedSources, hasLength(1));
     expect(manifest.sources.single.contentRedistribution,
-        CatalogueRightsStatus.unresolved);
+        CatalogueRightsStatus.cleared);
     expect(manifest.sources.single.previewRedistribution,
-        CatalogueRightsStatus.unresolved);
+        CatalogueRightsStatus.cleared);
     expect(manifest.sources.single.licenseNotice,
         contains('Copyright (c) 2026 Clash Bases contributors'));
+    expect(manifest.sources.single.evidence, contains('MIT-licensed'));
     expect(manifest.unofficialDisclosure, contains('not affiliated with'));
     expect(manifest.unofficialDisclosure, contains('endorsed by Supercell'));
   });
 
-  test('unresolved full catalogue is not a packaged Flutter asset', () async {
+  test('legacy unresolved catalogue path is not packaged', () async {
     await expectLater(
       rootBundle.loadString('assets/data/clash_bases_catalog.json'),
       throwsA(isA<FlutterError>()),
@@ -573,11 +579,11 @@ void main() {
     expect(find.text('Unclassified · Source unavailable'), findsOneWidget);
   });
 
-  testWidgets('production empty catalogue shows an honest unavailable state',
+  testWidgets('empty cleared catalogue shows an honest unavailable state',
       (tester) async {
     final state = AppState(
       repository: CompositeBaseRepository(
-        remote: ClashBasesCatalogRepository(),
+        remote: _repository(const []),
         imports: ImportedBaseStore(directory: Directory.systemTemp),
       ),
     );
