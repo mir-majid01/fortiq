@@ -34,9 +34,9 @@ through GitHub Releases after the rights review passes.
 
 Private remote-testing releases: <https://github.com/mir-majid01/fortiq-test-builds>.
 These are personal debug builds.
-Latest device-test build (real catalogue enabled):
-<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.2-test6>.
-Previous build: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
+Latest device-test build (TH19 + real Builder Base + fast previews):
+<https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.3-test7>.
+Previous build: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.2-test6>.
 
 ### Maintenance update — 2026-11-26
 
@@ -160,6 +160,25 @@ Three defects reported against the live catalogue are fixed and verified.
 - `verify_apk.py` additionally fails the build if a packaged record has no
   HTTPS thumbnail or if a multi-megabyte preview is packaged without a
   lightweight rendition.
+
+### CI and device-test build — 2026-11-27 (second pass)
+
+- GitHub Actions run **45997481648** (commit `4277af9`, branch `main`) passed
+  every step: analyze, tests, debug APK build, APK rights/integrity
+  verification, SHA-256, and artifact upload.
+- The downloaded artifact was re-verified locally with
+  `.github/scripts/verify_apk.py`: **catalogue_bases=5345**,
+  **cleared_sources=2**, `catalogue_thumbnails=verified`,
+  `rights_uncleared_catalogue=absent`.
+- Private test build published:
+  <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.3-test7>
+  — `app-debug.apk`, **170,508,560 bytes**, SHA-256
+  `71b819c84614e594f15aed7b198e159f9c9426191b2a67e87398a1cbe8279ed3`
+  (GitHub's asset digest matches the locally computed checksum). The release
+  also ships `app-debug.apk.sha256` referencing the asset name so the download
+  can be checked with `sha256sum -c`.
+- Sideload only; debug-signed; not a public release. A connected-device pass
+  on the new build is still outstanding.
 
 ---
 

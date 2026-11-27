@@ -77,13 +77,14 @@
 - [x] `flutter analyze --no-fatal-infos`: 0 errors, 0 warnings, info-level diagnostics only.
 - [x] Full `flutter test`: 246 non-golden tests green (goldens excluded from CI; all nine pass locally — the Home hall strip was regenerated for TH19 and every other golden is pixel-identical).
 - [x] Golden comparisons pass against the approved sample/reference renders.
-- [x] Trigger GitHub CI and validate the new debug APK/checksum: run 45966907616, 170,460,516 bytes, SHA-256 `51f2088356b1771e03874cdd27ea5041304eb632b56b1397ccc445a6b1314542`; packaged catalogue verified at 5,162 bases (first live-catalogue build).
+- [x] Trigger GitHub CI and validate the new debug APK/checksum: run 45997481648 (TH19 + Builder Base + fast previews), 170,508,560 bytes, SHA-256 `71b819c84614e594f15aed7b198e159f9c9426191b2a67e87398a1cbe8279ed3`; packaged catalogue verified at 5,345 bases from 2 cleared sources with an HTTPS thumbnail on every record.
+- [x] Publish and verify private test build 7 (TH19, real Builder Base, fast previews): <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.3-test7> — 170,508,560 bytes, SHA-256 `71b819c84614e594f15aed7b198e159f9c9426191b2a67e87398a1cbe8279ed3`.
 - [x] Publish and verify private test build 6 (real catalogue): <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.2-test6> — 170,460,516 bytes, SHA-256 `55c13b79121b1c011dbc6aa16f28620aa0544e6426ca67ddebd35cca228b01df`.
 - [x] Publish and verify private test build 5: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.1-test5>.
 - [x] Historical private test build 4: CRC clean, 195,208,931 bytes, SHA-256 recorded: <https://github.com/mir-majid01/fortiq-test-builds/releases/tag/v0.1.0-test4>.
 - [x] Device-check branded splash and persisted onboarding on Infinix X6876.
 - [x] Device-check the earlier honest empty catalogue state (now superseded by the packaged real catalogue).
-- [ ] Device-check the real catalogue, favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available.
+- [ ] Device-check the real catalogue, favourites, links, previews, import, and updater when a live Mobile Use/Canvas surface is available. Test build 7 (`v0.1.3-test7`) still needs a device pass for TH19 browsing, Builder Base hall selection, preview speed, and the BH3 empty state.
 - [x] Record current device-tool boundary: Mobile Use inventory and doctor both report zero live Canvas surfaces/broker records; no raw-ADB bypass used.
 - [ ] Publish a public APK after the current release check.
 - [x] Update `HANDOVER.md` with exact evidence and remaining limitations.

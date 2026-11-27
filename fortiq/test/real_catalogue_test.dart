@@ -272,7 +272,8 @@ void main() {
     expect(base.creatorHandle, 'Source unavailable');
   });
 
-  test('production uses the packaged real catalogue, never samples', () async {    final repository = repositoryProvider();
+  test('production uses the packaged real catalogue, never samples', () async {
+    final repository = repositoryProvider();
 
     expect(repository, isA<CompositeBaseRepository>());
     expect(repository, isNot(isA<SampleBaseRepository>()));
